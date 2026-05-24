@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>COMMAND.CENTER // CELESTIAL HEAVEN</title>
+<title>SUNDRY // CELESTIAL COMMAND CENTER</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Cormorant+Garamond:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -14,7 +14,7 @@
   --dim: rgba(63,90,145,0.62);
   --bord: rgba(151,181,232,0.42);
   --panel: rgba(255,255,255,0.58);
-  --panel-strong: rgba(255,255,255,0.76);
+  --panel-strong: rgba(255,255,255,0.78);
   --ink: #26406d;
   --soft: #7a9fd9;
   --font: 'Share Tech Mono','Courier New',monospace;
@@ -48,16 +48,10 @@ body::after {
   box-shadow:0 12px 40px rgba(96,137,204,0.18), inset 0 1px 0 rgba(255,255,255,0.78);
   border-radius:22px;
 }
-.hdr-brand {
-  font-family:var(--serif); font-size:1.8em; letter-spacing:.16em; color:var(--gold);
-  text-shadow:0 0 20px rgba(216,169,95,.25);
-}
+.hdr-brand { font-family:var(--serif); font-size:1.8em; letter-spacing:.16em; color:var(--gold); text-shadow:0 0 20px rgba(216,169,95,.25); }
 .hdr-mid { display:flex; gap:22px; font-size:.66em; color:var(--dim); letter-spacing:.08em; }
 .hdr-right { font-size:.64em; color:var(--dim); text-align:right; line-height:1.7; }
-.dot {
-  display:inline-block; width:7px; height:7px; background:var(--gold); border-radius:50%; margin-right:5px;
-  box-shadow:0 0 10px rgba(216,169,95,.6); animation:pulse 2.2s infinite;
-}
+.dot { display:inline-block; width:7px; height:7px; background:var(--gold); border-radius:50%; margin-right:5px; box-shadow:0 0 10px rgba(216,169,95,.6); animation:pulse 2.2s infinite; }
 .grid { display:grid; grid-template-columns:1fr 1fr 1fr 320px; grid-template-rows:1fr 1fr; gap:8px; }
 .cam {
   display:grid; grid-template-rows:24px 1fr; border:1px solid var(--bord); background:var(--panel);
@@ -66,10 +60,7 @@ body::after {
   box-shadow:0 10px 30px rgba(96,137,204,0.12), inset 0 1px 0 rgba(255,255,255,.7);
 }
 .cam:hover { border-color:rgba(95,136,214,0.45); box-shadow:0 16px 42px rgba(96,137,204,0.18); transform:translateY(-2px); }
-.cam::before {
-  content:''; position:absolute; inset:0; z-index:5; pointer-events:none;
-  background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0));
-}
+.cam::before { content:''; position:absolute; inset:0; z-index:5; pointer-events:none; background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0)); }
 .cam-bar {
   display:flex; align-items:center; justify-content:space-between; padding:0 10px;
   background:rgba(255,255,255,0.42); border-bottom:1px solid rgba(151,181,232,0.3);
@@ -90,10 +81,7 @@ body::after {
   padding:12px; flex:1; overflow:hidden; display:flex; flex-direction:column; border-radius:24px;
   box-shadow:0 10px 30px rgba(96,137,204,0.12), inset 0 1px 0 rgba(255,255,255,.75);
 }
-.ptitle {
-  font-size:.55em; letter-spacing:.18em; color:var(--dim); border-bottom:1px solid rgba(151,181,232,0.22);
-  padding-bottom:6px; margin-bottom:10px; flex-shrink:0;
-}
+.ptitle { font-size:.55em; letter-spacing:.18em; color:var(--dim); border-bottom:1px solid rgba(151,181,232,0.22); padding-bottom:6px; margin-bottom:10px; flex-shrink:0; }
 .w-temp { font-size:2.4em; text-align:center; color:var(--gold); text-shadow:0 0 18px rgba(216,169,95,.16); margin:4px 0 2px; }
 .w-desc { font-size:.58em; color:var(--dim); text-align:center; letter-spacing:.1em; margin-bottom:10px; }
 .w-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:.6em; }
@@ -102,46 +90,30 @@ body::after {
 .sbar { margin-bottom:8px; }
 .sbar-row { display:flex; justify-content:space-between; font-size:.56em; color:var(--dim); margin-bottom:3px; letter-spacing:.07em; }
 .track { height:6px; background:rgba(143,175,227,0.18); border-radius:999px; overflow:hidden; }
-.fill {
-  height:100%; background:linear-gradient(90deg, rgba(116,160,235,0.7), rgba(197,224,255,0.98));
-  box-shadow:0 0 10px rgba(116,160,235,0.24); transition:width 1.5s ease;
-}
+.fill { height:100%; background:linear-gradient(90deg, rgba(116,160,235,0.7), rgba(197,224,255,0.98)); box-shadow:0 0 10px rgba(116,160,235,0.24); transition:width 1.5s ease; }
 .fill.gold { background:linear-gradient(90deg, rgba(216,169,95,0.55), rgba(255,230,183,0.98)); }
 .fill.rose { background:linear-gradient(90deg, rgba(182,138,208,0.45), rgba(245,213,255,0.9)); }
-.term {
-  border:1px solid var(--bord); background:rgba(255,255,255,0.52); -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
-  padding:6px 14px; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end; border-radius:20px;
-}
+.term { border:1px solid var(--bord); background:rgba(255,255,255,0.52); -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px); padding:6px 14px; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end; border-radius:20px; }
 .tline { font-size:.58em; letter-spacing:.06em; color:rgba(87,120,176,0.45); white-space:nowrap; overflow:hidden; }
 .tline.active { color:rgba(55,84,138,0.9); }
-.overlay {
-  display:none; position:fixed; inset:0; background:rgba(210,228,255,0.58); z-index:100; align-items:center; justify-content:center;
-  -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
-}
+.overlay { display:none; position:fixed; inset:0; background:rgba(210,228,255,0.58); z-index:100; align-items:center; justify-content:center; -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); }
 .overlay.on { display:flex; }
-.modal {
-  border:1px solid rgba(151,181,232,0.38); background:rgba(255,255,255,0.9); padding:20px 22px; width:640px; max-height:88vh;
-  overflow-y:auto; box-shadow:0 18px 60px rgba(96,137,204,0.22); border-radius:28px;
-}
+.modal { border:1px solid rgba(151,181,232,0.38); background:rgba(255,255,255,0.9); padding:20px 22px; width:680px; max-height:88vh; overflow-y:auto; box-shadow:0 18px 60px rgba(96,137,204,0.22); border-radius:28px; }
 .m-title { font-family:var(--serif); font-size:1.3em; letter-spacing:.14em; color:var(--gold); margin-bottom:4px; }
 .m-sub,.m-lbl,.m-sep,.m-hint { color:var(--dim); }
 .m-sub { font-size:.56em; margin-bottom:14px; letter-spacing:.1em; }
 .m-lbl { font-size:.58em; letter-spacing:.08em; margin-bottom:4px; margin-top:8px; }
 .m-sep { font-size:.52em; letter-spacing:.15em; margin:14px 0 6px; border-top:1px solid rgba(151,181,232,0.2); padding-top:10px; }
-.modal input,.modal textarea,.modal select {
-  width:100%; background:rgba(248,252,255,0.95); border:1px solid rgba(151,181,232,0.42); color:var(--ink);
-  font-family:var(--font); padding:8px 10px; font-size:.74em; outline:none; border-radius:14px;
-}
+.modal input,.modal textarea,.modal select { width:100%; background:rgba(248,252,255,0.95); border:1px solid rgba(151,181,232,0.42); color:var(--ink); font-family:var(--font); padding:8px 10px; font-size:.74em; outline:none; border-radius:14px; }
 .modal textarea { min-height:86px; resize:vertical; }
 .modal input:focus,.modal textarea:focus,.modal select:focus { box-shadow:0 0 0 3px rgba(143,175,227,0.18); }
-.mbtn {
-  background:rgba(255,255,255,0.5); border:1px solid rgba(151,181,232,0.38); color:var(--ink); font-family:var(--font);
-  padding:9px 18px; cursor:pointer; font-size:.68em; letter-spacing:.12em; margin-right:8px; margin-top:12px; border-radius:999px;
-}
+.mbtn { background:rgba(255,255,255,0.5); border:1px solid rgba(151,181,232,0.38); color:var(--ink); font-family:var(--font); padding:9px 18px; cursor:pointer; font-size:.68em; letter-spacing:.12em; margin-right:8px; margin-top:12px; border-radius:999px; }
 .mbtn.gld { border-color:rgba(216,169,95,0.35); color:var(--gold); }
 .feed-list { display:grid; gap:8px; }
 .feed-row { display:grid; grid-template-columns:1fr 1.4fr; gap:8px; }
 .small-note { font-size:.54em; color:var(--dim); line-height:1.6; margin-top:6px; }
+.country-chip-wrap { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+.country-chip { font-size:.5em; padding:6px 9px; border-radius:999px; border:1px solid rgba(151,181,232,0.36); background:rgba(255,255,255,0.58); color:var(--dim); }
 @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.35;transform:scale(.82)} }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 .blink { animation:blink 1.2s step-end infinite; }
@@ -161,7 +133,7 @@ body::after {
   <div class="hdr">
     <div>
       <div style="font-size:.5em;color:var(--dim);letter-spacing:.24em;margin-bottom:1px">✦ ACCESS LEVEL: ASCENDED ✦</div>
-      <div class="hdr-brand">Cloud Command</div>
+      <div class="hdr-brand">SUNDRY Command Center</div>
     </div>
     <div class="hdr-mid">
       <div><span class="dot"></span>FEEDS LIVE</div>
@@ -180,7 +152,7 @@ body::after {
     <div class="cam" id="p1"><div class="cam-bar"><span>EARTH FEED // RADAR RAIN</span><span><span class="dot"></span>LIVE</span></div><div class="cam-body"><iframe id="feed1" allowfullscreen loading="lazy"></iframe></div></div>
     <div class="cam" id="p2"><div class="cam-bar"><span>EARTH FEED // WIND STREAMS</span><span><span class="dot"></span>LIVE</span></div><div class="cam-body"><iframe id="feed2" allowfullscreen loading="lazy"></iframe></div></div>
     <div class="cam" id="p3"><div class="cam-bar"><span>EARTH FEED // TEMPERATURE</span><span><span class="dot"></span>LIVE</span></div><div class="cam-body"><iframe id="feed3" allowfullscreen loading="lazy"></iframe></div></div>
-    <div class="cam" id="p4"><div class="cam-bar"><span>CAM FEED // EARTHCAM / WEBCAM</span><span id="status4"><span class="blink">◌</span> READY</span></div><div class="cam-body" id="body4"><div class="ph" onclick="openCfg()"><div class="ph-icon">☁</div><div>ADD WEB CAM OR EARTHCAM EMBED</div><div style="opacity:.55;font-size:.9em">use an embed URL or page that allows iframe display</div></div></div></div>
+    <div class="cam" id="p4"><div class="cam-bar"><span id="legalTitle">LEGAL LIVE // SHUFFLE SCREEN</span><span id="status4"><span class="dot"></span>AUTO</span></div><div class="cam-body" id="body4"><iframe id="legalFeed" allowfullscreen loading="lazy"></iframe></div></div>
     <div class="cam" id="p5"><div class="cam-bar"><span>CAM FEED // IP CAMERA</span><span id="status5"><span class="blink">◌</span> READY</span></div><div class="cam-body" id="body5"><div class="ph" onclick="openCfg()"><div class="ph-icon">✦</div><div>PASTE DIRECT CAMERA STREAM</div><div style="opacity:.55;font-size:.9em">mjpeg jpg snapshot mp4 hls stream urls</div></div></div></div>
 
     <div class="right-col">
@@ -206,20 +178,23 @@ body::after {
       </div>
 
       <div class="panel">
-        <div class="ptitle">FEED ORCHESTRATION // QUICK LOADOUT</div>
+        <div class="ptitle">LEGAL LIVE ROTATION // COUNTRY SHUFFLE</div>
         <div class="sbar"><div class="sbar-row"><span>UPLINK INTEGRITY</span><span id="ev1">--%</span></div><div class="track"><div class="fill" id="eb1" style="width:0"></div></div></div>
         <div class="sbar"><div class="sbar-row"><span>FEED STABILITY</span><span id="ev2">--%</span></div><div class="track"><div class="fill" id="eb2" style="width:0"></div></div></div>
         <div class="sbar"><div class="sbar-row"><span>ENCRYPTION</span><span id="ev3">--%</span></div><div class="track"><div class="fill gold" id="eb3" style="width:0"></div></div></div>
         <div class="sbar"><div class="sbar-row"><span>WEATHER LOCK</span><span id="ev4">--%</span></div><div class="track"><div class="fill gold" id="eb4" style="width:0"></div></div></div>
         <div class="sbar"><div class="sbar-row"><span>SERAPHIC NOISE</span><span id="ev5">CLEAR</span></div><div class="track"><div class="fill rose" id="eb5" style="width:0"></div></div></div>
         <div style="margin-top:8px;font-size:.54em;color:var(--dim);border-top:1px solid rgba(151,181,232,0.22);padding-top:6px;line-height:1.9">
-          <div>ACTIVE FEEDS: <span style="color:var(--sky)" id="afc">4 / 6</span></div>
+          <div>ACTIVE FEEDS: <span style="color:var(--sky)" id="afc">5 / 6</span></div>
           <div>UPTIME: <span style="color:var(--gold)" id="upt">00:00:00</span></div>
           <div>EVENTS LOGGED: <span style="color:var(--ink)" id="evl">0</span></div>
-          <div>NODES SCANNED: <span style="color:var(--sky)" id="nsc">0</span></div>
+          <div>COUNTRY NOW: <span style="color:var(--sky)" id="countryNow">Japan</span></div>
+          <div>ROTATE EVERY: <span style="color:var(--ink)" id="rotateEvery">20s</span></div>
         </div>
-        <button class="mbtn gld" onclick="openCfg()" style="width:100%;margin:12px 0 0;font-size:.62em;letter-spacing:.12em">OPEN FEED CONFIG</button>
-        <div class="small-note">Tip: for IP cameras, use a direct stream or snapshot URL, like <b>http://IP:PORT/video.mjpg</b>, <b>/shot.jpg</b>, or an HLS <b>.m3u8</b> URL if the browser supports it.</div>
+        <div class="country-chip-wrap" id="countryChips"></div>
+        <button class="mbtn gld" onclick="shuffleLegalFeed(true)" style="width:100%;margin:12px 0 0;font-size:.62em;letter-spacing:.12em">SHUFFLE LEGAL FEED NOW</button>
+        <button class="mbtn" onclick="openCfg()" style="width:100%;margin:8px 0 0;font-size:.62em;letter-spacing:.12em">OPEN FEED CONFIG</button>
+        <div class="small-note">These are legal public embeds and map sources when available. Some providers may still change embed behavior over time.</div>
       </div>
     </div>
   </div>
@@ -230,7 +205,7 @@ body::after {
 <div class="overlay" id="mo">
   <div class="modal">
     <div class="m-title">Heavenly Feed Configuration</div>
-    <div class="m-sub">Load weather maps, Earthcam pages, and direct IP camera streams.</div>
+    <div class="m-sub">Load weather maps, legal public webcam rotation, and direct IP camera streams.</div>
 
     <div class="m-sep">EARTH / WEATHER MAP FEEDS</div>
     <div class="feed-list">
@@ -241,10 +216,10 @@ body::after {
     </div>
     <div class="small-note">Format: <b>overlay|lat,lon,zoom</b>. Overlays: clouds, wind, temp, rain, pressure, humidity, waves, cape, snow.</div>
 
-    <div class="m-sep">WEB CAM / EARTHCAM FEED</div>
-    <div class="m-lbl">EMBED OR PAGE URL</div>
-    <input id="webcamUrl" placeholder="https://...">
-    <div class="small-note">If the site blocks embedding with iframe security, it may not render inside the dashboard. In that case you need the provider's actual embed URL.</div>
+    <div class="m-sep">LEGAL LIVE SHUFFLE</div>
+    <div class="m-lbl">ROTATION SECONDS</div>
+    <input id="rotateSecs" type="number" min="5" value="20">
+    <div class="small-note">This rotates one screen through public, legal feeds from different countries when available.</div>
 
     <div class="m-sep">IP CAMERA FEED</div>
     <div class="m-lbl">DIRECT STREAM URL</div>
@@ -253,7 +228,7 @@ body::after {
     <input id="ipcamUser" placeholder="username">
     <div class="m-lbl">OPTIONAL PASSWORD</div>
     <input id="ipcamPass" type="password" placeholder="password">
-    <div class="small-note">This page only connects from the browser. It does not magically break into cameras. The camera must already be reachable from the device and allow browser playback.</div>
+    <div class="small-note">This page only connects from the browser. It does not bypass access controls. The feed must already be public or authorized and browser-playable.</div>
 
     <div class="m-sep">WEATHER LOCATION</div>
     <input id="wlocv" placeholder="Pittsburgh, PA">
@@ -267,11 +242,23 @@ body::after {
 'use strict';
 const state = {
   weatherLocation: '',
+  rotateMs: 20000,
+  legalIndex: 0,
   maps: [
     {label:'GLOBAL CLOUDS', overlay:'clouds', lat:39.5, lon:-98.3, zoom:3},
     {label:'RADAR RAIN', overlay:'rain', lat:33, lon:-84, zoom:5},
     {label:'WIND STREAMS', overlay:'wind', lat:51, lon:10, zoom:4},
     {label:'TEMPERATURE', overlay:'temp', lat:35, lon:138, zoom:4}
+  ],
+  legalFeeds: [
+    {country:'Japan', title:'Tokyo Wind Map', type:'iframe', url:'https://embed.windy.com/embed2.html?lat=35.6762&lon=139.6503&zoom=5&level=surface&overlay=wind&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1'},
+    {country:'Brazil', title:'Brazil Rain Radar', type:'iframe', url:'https://embed.windy.com/embed2.html?lat=-22.9068&lon=-43.1729&zoom=5&level=surface&overlay=rain&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1'},
+    {country:'France', title:'Paris Clouds', type:'iframe', url:'https://embed.windy.com/embed2.html?lat=48.8566&lon=2.3522&zoom=6&level=surface&overlay=clouds&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1'},
+    {country:'Kenya', title:'Nairobi Temperature', type:'iframe', url:'https://embed.windy.com/embed2.html?lat=-1.2864&lon=36.8172&zoom=6&level=surface&overlay=temp&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1'},
+    {country:'Australia', title:'Sydney Waves', type:'iframe', url:'https://embed.windy.com/embed2.html?lat=-33.8688&lon=151.2093&zoom=5&level=surface&overlay=waves&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1'},
+    {country:'Canada', title:'Toronto Radar', type:'iframe', url:'https://embed.windy.com/embed2.html?lat=43.6532&lon=-79.3832&zoom=5&level=surface&overlay=rain&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1'},
+    {country:'India', title:'Delhi Clouds', type:'iframe', url:'https://embed.windy.com/embed2.html?lat=28.6139&lon=77.2090&zoom=5&level=surface&overlay=clouds&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1'},
+    {country:'United States', title:'New York Wind', type:'iframe', url:'https://embed.windy.com/embed2.html?lat=40.7128&lon=-74.0060&zoom=6&level=surface&overlay=wind&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1'}
   ]
 };
 (function(){
@@ -320,6 +307,11 @@ function renderMaps(){
   });
 }
 renderMaps();
+function renderCountryChips(){
+  const wrap = document.getElementById('countryChips');
+  wrap.innerHTML = state.legalFeeds.map(f=>`<div class="country-chip">${f.country}</div>`).join('');
+}
+renderCountryChips();
 let wLoc='';
 function fetchWeather(loc){
   const url=loc?`https://wttr.in/${encodeURIComponent(loc)}?format=j1`:'https://wttr.in/?format=j1';
@@ -352,16 +344,14 @@ function animBars(){
   });
   const tl=R(2,15); document.getElementById('eb5').style.width=tl+'%'; document.getElementById('ev5').textContent=tl<6?'CLEAR':tl<12?'LOW':'GLOWING';
   if(Math.random()>.87){ evCount++; document.getElementById('evl').textContent=evCount; }
-  const ns=document.getElementById('nsc'); ns.textContent=+ns.textContent+(Math.random()*20|0);
 }
 animBars(); setInterval(animBars,4000);
 const BOOT=[
-  'ASCENSION COMPLETE // CELESTIAL HEAVEN MODE ONLINE',
+  'SUNDRY ASCENSION COMPLETE // COMMAND CENTER ONLINE',
   'SOFT LIGHT BUS ENGAGED',
   'WEATHER MAP ARRAY LOADED',
-  'EARTH FEED BANK READY',
+  'LEGAL LIVE SHUFFLE READY',
   'IP CAMERA DOCK WAITING FOR INPUT',
-  'WEB CAM SLOT READY FOR EMBEDS',
   'SERENE WATCH MODE ACTIVE'
 ];
 const IDLE=[
@@ -370,9 +360,9 @@ const IDLE=[
   'UPLINK GLOW HOLDING',
   'ATMOSPHERIC LAYER REFRESHED',
   'WATCHTOWER QUIET // NO ANOMALIES',
-  'SILVER WIND PASS COMPLETE'
+  'COUNTRY SHUFFLE STANDING BY'
 ];
-let lines=[], boot=0;
+let lines=[], boot=0, legalTimer=null;
 function log(msg){
   const t=new Date().toTimeString().split(' ')[0]; lines.push(`[${t}] ${msg}`); if(lines.length>3) lines.shift();
   const term=document.getElementById('term'); term.innerHTML='';
@@ -383,18 +373,26 @@ bootSeq(); setInterval(()=>log(IDLE[Math.random()*IDLE.length|0]),7200);
 function openCfg(){ document.getElementById('mo').classList.add('on'); }
 function closeCfg(){ document.getElementById('mo').classList.remove('on'); }
 function updateActiveFeeds(){
-  let active = 4;
-  if(document.getElementById('body4').dataset.live==='1') active++;
+  let active = 5;
   if(document.getElementById('body5').dataset.live==='1') active++;
   document.getElementById('afc').textContent = `${active} / 6`;
 }
-function embedWebcam(url){
-  const body = document.getElementById('body4');
-  body.dataset.live='1';
-  body.innerHTML = `<iframe src="${url}" allowfullscreen loading="lazy"></iframe>`;
-  document.getElementById('status4').innerHTML = `<span class="dot"></span>LIVE`;
-  log(`WEB CAM LINKED // ${url}`);
+function shuffleLegalFeed(manual=false){
+  const feed = state.legalFeeds[state.legalIndex % state.legalFeeds.length];
+  const frame = document.getElementById('legalFeed');
+  frame.src = feed.url;
+  document.getElementById('legalTitle').textContent = `LEGAL LIVE // ${feed.country.toUpperCase()} // ${feed.title.toUpperCase()}`;
+  document.getElementById('countryNow').textContent = feed.country;
+  if(manual) log(`LEGAL SHUFFLE // ${feed.country.toUpperCase()} // ${feed.title.toUpperCase()}`);
+  state.legalIndex = (state.legalIndex + 1) % state.legalFeeds.length;
 }
+function startLegalRotation(){
+  if(legalTimer) clearInterval(legalTimer);
+  shuffleLegalFeed(false);
+  legalTimer = setInterval(()=>shuffleLegalFeed(false), state.rotateMs);
+  document.getElementById('rotateEvery').textContent = `${Math.round(state.rotateMs/1000)}s`;
+}
+startLegalRotation();
 function embedIPCamera(url,user,pass){
   const body = document.getElementById('body5');
   let finalUrl = url;
@@ -424,8 +422,8 @@ function applyCfg(){
     if(overlayPart && lat && lon){ state.maps[i] = { label, overlay:overlayPart.trim(), lat, lon, zoom:zoom || 3 }; }
   }
   renderMaps();
-  const webcamUrl = document.getElementById('webcamUrl').value.trim();
-  if(webcamUrl) embedWebcam(webcamUrl);
+  const rotateSecs = parseInt(document.getElementById('rotateSecs').value, 10);
+  if(rotateSecs >= 5) { state.rotateMs = rotateSecs * 1000; startLegalRotation(); }
   const ipcamUrl = document.getElementById('ipcamUrl').value.trim();
   const ipcamUser = document.getElementById('ipcamUser').value.trim();
   const ipcamPass = document.getElementById('ipcamPass').value.trim();
@@ -436,7 +434,7 @@ function applyCfg(){
   }
   updateActiveFeeds();
   closeCfg();
-  log('CONFIG APPLIED // HEAVENLY ARRAY UPDATED');
+  log('CONFIG APPLIED // SUNDRY ARRAY UPDATED');
 }
 document.getElementById('mo').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeCfg(); });
 updateActiveFeeds();
