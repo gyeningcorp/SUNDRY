@@ -25,6 +25,7 @@ html, body {
   min-height: 100%;
   font-family: Inter, system-ui, sans-serif;
   color: var(--text);
+  overflow-x: hidden;
   background:
     radial-gradient(circle at 18% 14%, rgba(255,255,255,0.95) 0 6%, transparent 7%),
     radial-gradient(circle at 33% 12%, rgba(255,255,255,0.88) 0 8%, transparent 9%),
@@ -101,13 +102,13 @@ body::after {
 }
 .main {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: minmax(0, 1fr) 320px;
   gap: 14px;
   align-items: start;
 }
 .feed-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
 .card {
@@ -119,8 +120,7 @@ body::after {
   overflow: hidden;
 }
 .feed {
-  aspect-ratio: 1 / 1;
-  min-height: 260px;
+  min-height: 360px;
   display: grid;
   grid-template-rows: auto 1fr;
 }
@@ -196,6 +196,7 @@ body::after {
   gap: 14px;
   position: sticky;
   top: 18px;
+  align-self: start;
 }
 .panel {
   padding: 14px;
@@ -322,6 +323,7 @@ input {
 }
 @media (max-width: 1280px) {
   .main { grid-template-columns: 1fr; }
+  .feed-grid { grid-template-columns: 1fr 1fr; }
   .side { grid-template-columns: 1fr 1fr; position: static; }
 }
 @media (max-width: 900px) {
