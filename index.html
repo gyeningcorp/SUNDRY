@@ -357,12 +357,12 @@ input {
       <div class="card feed"><div class="feed-bar"><span>Earth Feed // Temperature</span><span><span class="live-dot"></span>Live</span></div><div class="feed-body"><iframe id="feed3" loading="lazy"></iframe></div></div>
 
       <div class="card feed">
-        <div class="feed-bar"><span>Legal Live // Main Rotation</span><span><span class="live-dot"></span>Auto</span></div>
+        <div class="feed-bar"><span>Public Live Cams // Main Rotation</span><span><span class="live-dot"></span>Auto</span></div>
         <div class="feed-body">
           <iframe id="legalFeedMain" loading="lazy"></iframe>
           <div class="overlay">
             <div class="country" id="legalCountry">Japan</div>
-            <div class="desc" id="legalDesc">Loading legal public feed</div>
+            <div class="desc" id="legalDesc">Loading public live cam</div>
           </div>
         </div>
       </div>
@@ -379,12 +379,12 @@ input {
       </div>
 
       <div class="card feed">
-        <div class="feed-bar"><span>Legal Live // Feed Bank</span><span><span class="live-dot"></span>Live</span></div>
+        <div class="feed-bar"><span>Public Live Cams // Feed Bank</span><span><span class="live-dot"></span>Live</span></div>
         <div class="feed-body">
           <iframe id="legalFeedBank" loading="lazy"></iframe>
           <div class="overlay">
             <div class="country" id="legalBankCountry">United States</div>
-            <div class="desc" id="legalBankDesc">Secondary legal public feed</div>
+            <div class="desc" id="legalBankDesc">Secondary public live cam</div>
           </div>
         </div>
       </div>
@@ -414,10 +414,10 @@ input {
           <div class="kv"><div class="label">Country Now</div><div id="countryNow">Japan</div></div>
           <div class="kv"><div class="label">Uptime</div><div id="upt">00:00:00</div></div>
         </div>
-        <div class="section-title">Country Bank</div>
+        <div class="section-title">Public Cam Bank</div>
         <div class="chips" id="countryChips"></div>
         <div class="button-row">
-          <button class="primary" onclick="shuffleLegalFeeds(true)">Shuffle legal feeds now</button>
+          <button class="primary" onclick="shuffleLegalFeeds(true)">Shuffle public cams now</button>
           <button onclick="openCfg()">Open feed config</button>
         </div>
       </div>
@@ -473,13 +473,14 @@ const state = {
     'temp|35,138,4'
   ],
   legalFeeds: [
-    {country:'United States', title:'Chicago public cam', desc:'public city-view cam source', url:'https://www.skylinewebcams.com/en/webcam/united-states/illinois/chicago/skydeck.html'},
-    {country:'Italy', title:'Milan Duomo public cam', desc:'public city-view cam source', url:'https://www.skylinewebcams.com/en/webcam/italia/lombardia/milano/duomo-milano.html'},
-    {country:'Japan', title:'Mount Moiwa public cam', desc:'public mountain-city cam source', url:'https://www.skylinewebcams.com/en/webcam/japan/prefecture-of-hokkaido/sapporo/mount-moiwa.html'},
-    {country:'Spain', title:'Puerta del Sol public cam', desc:'public city square cam source', url:'https://www.skylinewebcams.com/en/webcam/espana/comunidad-de-madrid/madrid/puerta-del-sol-tio-pepe.html'},
-    {country:'Brazil', title:'Rio rain radar fallback', desc:'legal live weather fallback', url:'https://embed.windy.com/embed2.html?lat=-22.9068&lon=-43.1729&zoom=5&level=surface&overlay=rain&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1'},
-    {country:'France', title:'Paris cloud fallback', desc:'legal live weather fallback', url:'https://embed.windy.com/embed2.html?lat=48.8566&lon=2.3522&zoom=6&level=surface&overlay=clouds&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1'},
-    {country:'Australia', title:'Sydney wave fallback', desc:'legal live weather fallback', url:'https://embed.windy.com/embed2.html?lat=-33.8688&lon=151.2093&zoom=5&level=surface&overlay=waves&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1'}
+    {country:'United States', title:'Chicago Skyline public cam', desc:'public city webcam source', url:'https://www.skylinewebcams.com/en/webcam/united-states/illinois/chicago/downtown-chicago.html'},
+    {country:'United States', title:'Brooklyn Bridge public cam', desc:'public NYC webcam source', url:'https://www.skylinewebcams.com/en/webcam/united-states/new-york/new-york/nyc-brooklyn-bridge-manhattan.html'},
+    {country:'United States', title:'Long Island City public cam', desc:'public Queens webcam source', url:'https://www.skylinewebcams.com/en/webcam/united-states/new-york/new-york/long-island-city.html'},
+    {country:'Italy', title:'Milan Duomo public cam', desc:'public city webcam source', url:'https://www.skylinewebcams.com/en/webcam/italia/lombardia/milano/duomo-milano.html'},
+    {country:'Spain', title:'Puerta del Sol public cam', desc:'public city square webcam source', url:'https://www.skylinewebcams.com/en/webcam/espana/comunidad-de-madrid/madrid/puerta-del-sol-tio-pepe.html'},
+    {country:'Japan', title:'Mount Moiwa public cam', desc:'public mountain-city webcam source', url:'https://www.skylinewebcams.com/en/webcam/japan/prefecture-of-hokkaido/sapporo/mount-moiwa.html'},
+    {country:'EarthCam', title:'EarthCam network directory', desc:'public EarthCam network source', url:'https://www.earthcam.com/network/'},
+    {country:'Worldwide', title:'Live World Webcams embed hub', desc:'public webcam embed directory', url:'https://liveworldwebcams.com/embed-webcam/'}
   ]
 };
 let weatherLocation = '';
@@ -492,7 +493,7 @@ function renderClock(){ const now = new Date(); const p = v => String(v).padStar
 setInterval(renderClock,1000); renderClock();
 navigator.geolocation?.getCurrentPosition(pos => { document.getElementById('lat').textContent = pos.coords.latitude.toFixed(4); document.getElementById('lon').textContent = pos.coords.longitude.toFixed(4); }, () => { document.getElementById('lat').textContent = 'Denied'; document.getElementById('lon').textContent = 'Denied'; });
 function renderChips(active){ document.getElementById('countryChips').innerHTML = state.legalFeeds.map(f => `<div class="chip ${f.country===active?'active':''}">${f.country}</div>`).join(''); }
-function shuffleLegalFeeds(manual=false){ const a = state.legalFeeds[state.legalIndex % state.legalFeeds.length]; const b = state.legalFeeds[(state.legalIndex + 1) % state.legalFeeds.length]; document.getElementById('legalFeedMain').src = a.url; document.getElementById('legalCountry').textContent = a.country; document.getElementById('legalDesc').textContent = `${a.title} • ${a.desc}`; document.getElementById('legalFeedBank').src = b.url; document.getElementById('legalBankCountry').textContent = b.country; document.getElementById('legalBankDesc').textContent = `${b.title} • ${b.desc}`; document.getElementById('countryNow').textContent = a.country; renderChips(a.country); state.legalIndex = (state.legalIndex + 2) % state.legalFeeds.length; if(manual) log(`Legal feeds shuffled: ${a.country} and ${b.country}`); }
+function shuffleLegalFeeds(manual=false){ const a = state.legalFeeds[state.legalIndex % state.legalFeeds.length]; const b = state.legalFeeds[(state.legalIndex + 1) % state.legalFeeds.length]; document.getElementById('legalFeedMain').src = a.url; document.getElementById('legalCountry').textContent = a.country; document.getElementById('legalDesc').textContent = `${a.title} • ${a.desc}`; document.getElementById('legalFeedBank').src = b.url; document.getElementById('legalBankCountry').textContent = b.country; document.getElementById('legalBankDesc').textContent = `${b.title} • ${b.desc}`; document.getElementById('countryNow').textContent = a.country; renderChips(a.country); state.legalIndex = (state.legalIndex + 2) % state.legalFeeds.length; if(manual) log(`Public cams shuffled: ${a.country} and ${b.country}`); }
 function startRotation(){ clearInterval(legalTimer); shuffleLegalFeeds(false); legalTimer = setInterval(() => shuffleLegalFeeds(false), state.rotateMs); document.getElementById('rotateEvery').textContent = `${Math.round(state.rotateMs/1000)}s`; }
 function fetchWeather(loc=''){ const url = loc ? `https://wttr.in/${encodeURIComponent(loc)}?format=j1` : 'https://wttr.in/?format=j1'; fetch(url).then(r => r.json()).then(d => { const c = d.current_condition[0]; const a = d.nearest_area[0]; document.getElementById('wt').textContent = `${c.temp_C}°C`; document.getElementById('wd').textContent = c.weatherDesc[0].value; document.getElementById('wh').textContent = `${c.humidity}%`; document.getElementById('ww').textContent = `${c.windspeedKmph} km/h`; document.getElementById('wf').textContent = `${c.FeelsLikeC}°C`; document.getElementById('wv').textContent = `${c.visibility} km`; document.getElementById('wp').textContent = `${c.pressure} hPa`; document.getElementById('wu').textContent = c.uvIndex; document.getElementById('wloc').textContent = `Loc: ${a.areaName[0].value}, ${a.country[0].value}`; }).catch(() => { document.getElementById('wd').textContent = 'Weather unavailable'; }); }
 function embedIPCamera(url,user,pass){ let finalUrl = url; try { if(user && pass){ const u = new URL(url); u.username = user; u.password = pass; finalUrl = u.toString(); } } catch(e) {} const lower = finalUrl.toLowerCase(); let html = ''; if(lower.endsWith('.mp4')) html = `<video src="${finalUrl}" controls autoplay muted loop playsinline></video>`; else if(lower.endsWith('.m3u8')) html = `<video src="${finalUrl}" controls autoplay muted playsinline></video>`; else html = `<img src="${finalUrl}" alt="IP camera feed" onerror="this.insertAdjacentHTML('afterend','<div class=\'placeholder\'><strong>Stream failed to load</strong><div>Check URL, auth, format, CORS, and reachability.</div></div>'); this.remove();">`; document.getElementById('ipBody').innerHTML = html; document.getElementById('ipStatus').innerHTML = '<span class="live-dot"></span>Live'; document.getElementById('afc').textContent = '7 / 7'; log('IP camera linked'); }
