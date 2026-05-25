@@ -238,16 +238,155 @@ Avoid:
 
 ---
 
+## Privacy Policy and Terms of Service Recommendations
+
+If Go-Gig wants a credible SaaS / marketplace posture, the privacy policy and terms need to match the operating model.
+
+### Terms of Service, add or tighten these sections
+- Go-Gig is a software platform that facilitates introductions, discovery, messaging, booking, and payment routing
+- Go-Gig is not the employer, supervisor, or guarantor of providers or customers
+- providers are responsible for lawful performance of services
+- parents/guardians are responsible for under-18 provider participation
+- Go-Gig may restrict categories, geography, messaging, timing, and payouts for youth accounts
+- Go-Gig may suspend or remove accounts for safety, legal, trust, or policy concerns
+- customers assume responsibility for evaluating whether a provider is appropriate for their needs
+- all disputes related to service performance remain primarily between customer and provider, subject to Go-Gig platform policies
+- Go-Gig may preserve platform logs, consent records, and booking records for trust and safety, legal compliance, and dispute handling
+
+### Youth Provider Terms, separate addendum recommended
+Create a dedicated Youth Provider Addendum that sits on top of the normal provider terms. It should cover:
+- who can create the account
+- who gets paid
+- who legally consents
+- what services are allowed
+- what happens if rules are broken
+- how reports, suspensions, and removals work
+
+### Privacy Policy, add or tighten these sections
+For under-18 workflows, disclose clearly that Go-Gig may collect and store:
+- parent/guardian name and contact details
+- relationship to the youth provider
+- youth first name, age or date of birth, and profile details
+- consent records, signatures, timestamps, IP/device/session logs
+- booking, messaging, and incident records
+- payout and tax information for the adult account holder
+
+Privacy policy should also explain:
+- why the data is collected
+- how long it is retained
+- who it may be shared with, such as payment processors, legal authorities, trust and safety vendors, or insurers later
+- how parents request correction or deletion where legally permitted
+
+### COPPA / age-gating note
+If the program is 16-17 only, the product should still be careful not to onboard under-13 users directly. The product, copy, and flows should make clear that youth provider enrollment is initiated by an adult account holder.
+
+---
+
+## Under-18 Workflow, Recommended Production Version
+
+### 1. Entry Point
+- adult logs into Go-Gig
+- adult selects “Add Youth Provider”
+- clear disclosure: “Under-18 participation requires parent or guardian control and consent”
+
+### 2. Identity and Relationship Collection
+Collect from the adult:
+- legal name
+- email and phone
+- relationship to youth
+- address or service region
+- payout details
+- acknowledgment that the adult is the legal account owner
+
+Collect for the youth:
+- first name and last initial, or approved display name
+- date of birth
+- approved categories
+- profile photo, optional at launch
+- short bio / skills / portfolio
+
+### 3. Consent and Legal Acceptance
+Before activation:
+- adult accepts standard Go-Gig terms
+- adult accepts Youth Provider Addendum
+- adult signs parental consent and risk acknowledgment
+- adult confirms payout ownership
+- adult confirms responsibility for compliance with local youth-work rules
+
+### 4. Trust and Safety Controls
+Before profile goes live:
+- profile marked as youth account internally
+- category restrictions auto-applied
+- messaging controls enabled
+- time-of-day limits enabled
+- geography limits enabled
+- parent approval toggle enabled by default
+
+### 5. Booking Flow
+- customer sees youth disclosure badge
+- customer requests job
+- adult receives approval request
+- adult approves or declines
+- booking confirmation is sent
+- job proceeds
+- customer rates provider
+- payout goes to adult-controlled account
+
+### 6. Incident / Complaint Flow
+- customer, adult, or Go-Gig can flag a booking
+- high-severity report pauses the youth profile immediately
+- Go-Gig reviews logs, messages, booking history, and consent records
+- repeat or severe issues trigger suspension or permanent removal
+
+---
+
+## Legal Protection Levers for Go-Gig
+
+These are the strongest practical protections you can build into the product and paperwork:
+
+1. **Adult-controlled account ownership**  
+   Do not let minors be the legal account owner.
+
+2. **Adult-controlled payouts**  
+   Pay the adult, not the minor.
+
+3. **Restricted categories**  
+   Avoid hazardous, intimate, overnight, driving, and unsupervised high-risk services.
+
+4. **Platform-only language that matches reality**  
+   If you say you are SaaS only, the product cannot behave like a staffing agency.
+
+5. **Consent logs and audit trail**  
+   Save timestamps, signatures, policy versions, approvals, booking approvals, and incident records.
+
+6. **Fast suspension rights**  
+   Terms should reserve broad rights to limit or remove risky accounts.
+
+7. **Customer disclosures**  
+   Make it explicit when the provider is under 18 and parent-managed.
+
+8. **No direct guarantee language**  
+   Avoid marketing that sounds like Go-Gig is certifying safety, skill, or supervision beyond what it actually does.
+
+9. **State-by-state review before expansion**  
+   Youth work rules vary enough that scaling nationally without review is risky.
+
+10. **Insurance later, even if not now**  
+   I understand you do not have it now, but long term this is one of the cleanest risk reducers.
+
+---
+
 ## Risk Reduction Checklist
 
 Before launch:
-- lawyer review of terms, consent, and classification posture
-- review state-specific rules for 16-17 year olds in target launch states
+- lawyer review of terms, consent, classification posture, and state-specific youth-work rules
+- review privacy policy language for minor-related data collection and retention
 - clear prohibited-services matrix
 - reporting/escalation workflow
 - parent-controlled payout setup
 - minimum documentation retention for consent logs
 - moderation policy for customer behavior and incident handling
+- customer-facing disclosure for youth provider accounts
 
 Strongly recommended later:
 - marketplace liability insurance
