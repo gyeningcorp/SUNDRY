@@ -1,761 +1,190 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GYENINGCORP — App Nexus</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --cyan:   #00f5ff;
-      --purple: #b400ff;
-      --pink:   #ff2d78;
-      --gold:   #ffd700;
-      --dark:   #04060f;
-    }
-
-    html, body {
-      width: 100%; height: 100%;
-      background: var(--dark);
-      color: #fff;
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      overflow: hidden;
-      user-select: none;
-    }
-
-    /* ── THREE.JS CANVAS ── */
-    #bg {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-    }
-
-    /* ── HEADER ── */
-    #header {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 10;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-top: 28px;
-      pointer-events: none;
-    }
-    #logo {
-      font-size: clamp(22px, 4vw, 42px);
-      font-weight: 900;
-      letter-spacing: .25em;
-      text-transform: uppercase;
-      background: linear-gradient(90deg, var(--cyan), var(--purple), var(--pink));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      filter: drop-shadow(0 0 18px rgba(0,245,255,.5));
-      animation: pulse 4s ease-in-out infinite;
-    }
-    #subtitle {
-      margin-top: 6px;
-      font-size: clamp(10px, 1.4vw, 14px);
-      letter-spacing: .35em;
-      color: rgba(255,255,255,.35);
-      text-transform: uppercase;
-    }
-    @keyframes pulse {
-      0%,100% { filter: drop-shadow(0 0 18px rgba(0,245,255,.4)); }
-      50%      { filter: drop-shadow(0 0 34px rgba(180,0,255,.7)); }
-    }
-
-    /* ── HINT ── */
-    #hint {
-      position: fixed;
-      bottom: 22px; left: 0; right: 0;
-      text-align: center;
-      font-size: 11px;
-      letter-spacing: .2em;
-      color: rgba(255,255,255,.2);
-      z-index: 10;
-      pointer-events: none;
-    }
-
-    /* ── SCENE WRAPPER ── */
-    #scene {
-      position: fixed;
-      inset: 0;
-      z-index: 5;
-      perspective: 1200px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* ── 3-D CAROUSEL ── */
-    #carousel {
-      position: relative;
-      width: 220px;
-      height: 300px;
-      transform-style: preserve-3d;
-      animation: spin 40s linear infinite;
-      cursor: grab;
-    }
-    #carousel:active { cursor: grabbing; }
-    #carousel.paused { animation-play-state: paused; }
-    @keyframes spin {
-      from { transform: rotateY(0deg); }
-      to   { transform: rotateY(360deg); }
-    }
-
-    /* ── CARD ── */
-    .card {
-      position: absolute;
-      width: 210px;
-      height: 290px;
-      top: 0; left: 0;
-      transform-style: preserve-3d;
-      transition: transform .6s cubic-bezier(.4,0,.2,1);
-    }
-    .card.flipped { transform: var(--place) rotateY(180deg) !important; }
-    .card:hover { z-index: 20; }
-
-    .card-face {
-      position: absolute;
-      inset: 0;
-      border-radius: 18px;
-      backface-visibility: hidden;
-      -webkit-backface-visibility: hidden;
-      overflow: hidden;
-    }
-
-    /* FRONT */
-    .card-front {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-end;
-      padding: 18px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(8,12,28,.72);
-      backdrop-filter: blur(12px);
-      box-shadow: 0 0 0 1px rgba(255,255,255,.06),
-                  0 20px 60px rgba(0,0,0,.6),
-                  inset 0 1px 0 rgba(255,255,255,.1);
-      cursor: pointer;
-      transition: box-shadow .3s, transform .3s;
-    }
-    .card-front:hover {
-      box-shadow: 0 0 0 1px rgba(255,255,255,.18),
-                  0 0 40px var(--glow),
-                  0 20px 60px rgba(0,0,0,.7),
-                  inset 0 1px 0 rgba(255,255,255,.15);
-      transform: translateZ(24px) scale(1.04);
-    }
-
-    .card-gradient {
-      position: absolute;
-      inset: 0;
-      opacity: .18;
-      transition: opacity .3s;
-    }
-    .card-front:hover .card-gradient { opacity: .32; }
-
-    .card-glow-ring {
-      position: absolute;
-      top: -40px; left: 50%;
-      transform: translateX(-50%);
-      width: 160px; height: 160px;
-      border-radius: 50%;
-      opacity: 0;
-      transition: opacity .3s;
-      filter: blur(28px);
-    }
-    .card-front:hover .card-glow-ring { opacity: .55; }
-
-    .card-icon {
-      font-size: 64px;
-      line-height: 1;
-      filter: drop-shadow(0 4px 16px rgba(0,0,0,.6));
-      margin-bottom: 10px;
-      position: relative;
-      z-index: 1;
-    }
-    .card-name {
-      font-size: 15px;
-      font-weight: 800;
-      letter-spacing: .06em;
-      text-align: center;
-      position: relative;
-      z-index: 1;
-      text-shadow: 0 0 20px var(--glow);
-    }
-    .card-category {
-      font-size: 9px;
-      letter-spacing: .22em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,.45);
-      margin-top: 4px;
-      position: relative;
-      z-index: 1;
-    }
-    .card-tagline {
-      font-size: 11px;
-      color: rgba(255,255,255,.55);
-      text-align: center;
-      margin-top: 8px;
-      line-height: 1.5;
-      position: relative;
-      z-index: 1;
-    }
-    .flip-hint {
-      position: absolute;
-      bottom: 12px; right: 14px;
-      font-size: 8px;
-      letter-spacing: .15em;
-      color: rgba(255,255,255,.25);
-      text-transform: uppercase;
-    }
-
-    /* BACK */
-    .card-back {
-      background: rgba(6,9,20,.9);
-      border: 1px solid rgba(255,255,255,.12);
-      backdrop-filter: blur(16px);
-      transform: rotateY(180deg);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 14px;
-      padding: 22px;
-      box-shadow: 0 0 0 1px rgba(255,255,255,.06),
-                  0 20px 60px rgba(0,0,0,.7);
-    }
-    .back-icon { font-size: 44px; }
-    .back-name {
-      font-size: 17px;
-      font-weight: 800;
-      text-align: center;
-      letter-spacing: .05em;
-    }
-    .back-desc {
-      font-size: 11px;
-      color: rgba(255,255,255,.55);
-      text-align: center;
-      line-height: 1.65;
-    }
-    .launch-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 4px;
-      padding: 10px 22px;
-      border-radius: 30px;
-      border: none;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: .18em;
-      text-transform: uppercase;
-      cursor: pointer;
-      text-decoration: none;
-      color: #000;
-      transition: transform .2s, box-shadow .2s;
-    }
-    .launch-btn:hover {
-      transform: scale(1.06);
-      box-shadow: 0 0 24px var(--glow);
-    }
-    .back-close {
-      font-size: 9px;
-      letter-spacing: .15em;
-      color: rgba(255,255,255,.25);
-      text-transform: uppercase;
-      cursor: pointer;
-      margin-top: 2px;
-    }
-    .back-close:hover { color: rgba(255,255,255,.55); }
-
-    /* ── DETAIL OVERLAY ── */
-    #overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 100;
-      background: rgba(0,0,0,.8);
-      backdrop-filter: blur(8px);
-      align-items: center;
-      justify-content: center;
-    }
-    #overlay.open { display: flex; }
-
-    /* ── NAV DOTS ── */
-    #dots {
-      position: fixed;
-      right: 20px;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 10;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: rgba(255,255,255,.2);
-      cursor: pointer;
-      transition: background .3s, transform .3s;
-    }
-    .dot.active {
-      background: var(--cyan);
-      transform: scale(1.5);
-      box-shadow: 0 0 8px var(--cyan);
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>GYENINGCORP — App Nexus</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#020510;--cyan:#00f5ff;--purple:#b400ff;--pink:#ff2d78}
+html,body{width:100%;min-height:100%;background:var(--bg);color:#fff;font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden}
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none}
+#header{position:relative;z-index:10;text-align:center;padding:40px 20px 20px}
+#logo{font-size:clamp(28px,5vw,52px);font-weight:900;letter-spacing:.3em;background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:pulse 4s ease-in-out infinite}
+#tagline{margin-top:8px;font-size:clamp(10px,1.5vw,13px);letter-spacing:.4em;color:rgba(255,255,255,.3);text-transform:uppercase}
+@keyframes pulse{0%,100%{filter:drop-shadow(0 0 24px rgba(0,245,255,.5))}50%{filter:drop-shadow(0 0 40px rgba(180,0,255,.8))}}
+#grid{position:relative;z-index:5;display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:28px;padding:40px clamp(16px,5vw,80px) 100px;max-width:1400px;margin:0 auto}
+.app-card{cursor:pointer;display:flex;flex-direction:column;align-items:center;transition:transform .35s cubic-bezier(.4,0,.2,1);transform-style:preserve-3d;will-change:transform}
+.phone{width:155px;height:280px;border-radius:26px;background:#111;border:2px solid #2a2a2a;box-shadow:0 0 0 1px #3333,inset 0 0 0 2px #1a1a1a,0 24px 60px rgba(0,0,0,.9);position:relative;overflow:hidden;transition:box-shadow .35s}
+.app-card:hover .phone{box-shadow:0 0 0 1px var(--glow,#fff3),0 0 28px var(--glow,#fff2),0 32px 80px rgba(0,0,0,.95)}
+.phone::before{content:'';position:absolute;top:9px;left:50%;transform:translateX(-50%);width:46px;height:10px;background:#000;border-radius:10px;z-index:10}
+.phone::after{content:'';position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:44px;height:3px;background:#ffffff1a;border-radius:2px;z-index:10}
+.phone-screen{position:absolute;inset:0;overflow:hidden;border-radius:24px}
+.phone-overlay{position:absolute;inset:0;z-index:20;background:rgba(0,0,0,0);display:flex;align-items:center;justify-content:center;border-radius:24px;transition:background .3s}
+.app-card:hover .phone-overlay{background:rgba(0,0,0,.45)}
+.overlay-tap{font-size:32px;opacity:0;transform:scale(.7);transition:opacity .3s,transform .3s}
+.app-card:hover .overlay-tap{opacity:1;transform:scale(1)}
+.card-label{margin-top:11px;text-align:center}
+.card-name{font-size:13px;font-weight:700;letter-spacing:.04em}
+.card-cat{font-size:9px;letter-spacing:.2em;color:rgba(255,255,255,.38);text-transform:uppercase;margin-top:3px}
+#modal{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.88);backdrop-filter:blur(14px);align-items:center;justify-content:center}
+#modal.open{display:flex}
+#modal-wrap{display:flex;align-items:center;gap:52px;max-width:900px;width:100%;padding:0 24px;flex-wrap:wrap;justify-content:center}
+#modal-phone{width:240px;height:440px;border-radius:36px;background:#111;border:2.5px solid #2a2a2a;position:relative;overflow:hidden;flex-shrink:0;animation:floatPhone 5s ease-in-out infinite}
+#modal-phone::before{content:'';position:absolute;top:14px;left:50%;transform:translateX(-50%);width:62px;height:12px;background:#000;border-radius:12px;z-index:10}
+#modal-phone::after{content:'';position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:62px;height:4px;background:#ffffff1a;border-radius:4px;z-index:10}
+#modal-screen{position:absolute;inset:0;overflow:hidden;border-radius:34px}
+@keyframes floatPhone{0%,100%{transform:translateY(0) rotateY(-6deg) rotateX(2deg)}50%{transform:translateY(-14px) rotateY(6deg) rotateX(-2deg)}}
+#modal-info{max-width:320px}
+#m-icon{font-size:48px;margin-bottom:10px}
+#m-name{font-size:26px;font-weight:900;letter-spacing:.05em;margin-bottom:5px}
+#m-cat{font-size:10px;letter-spacing:.3em;color:rgba(255,255,255,.38);text-transform:uppercase;margin-bottom:14px}
+#m-desc{font-size:13px;color:rgba(255,255,255,.62);line-height:1.72;margin-bottom:26px}
+#m-btn{display:inline-flex;align-items:center;gap:8px;padding:13px 30px;border-radius:40px;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;text-decoration:none;color:#000;transition:transform .2s,box-shadow .2s}
+#m-btn:hover{transform:scale(1.06)}
+#modal-x{position:fixed;top:22px;right:26px;font-size:22px;cursor:pointer;color:rgba(255,255,255,.35);transition:color .2s;z-index:1001;line-height:1}
+#modal-x:hover{color:#fff}
+</style>
 </head>
 <body>
-
 <canvas id="bg"></canvas>
-
 <div id="header">
   <div id="logo">GYENINGCORP</div>
-  <div id="subtitle">App Nexus &mdash; Built Different</div>
+  <div id="tagline">18 Apps &mdash; Built Different</div>
 </div>
-
-<div id="scene">
-  <div id="carousel"></div>
+<div id="grid"></div>
+<div id="modal">
+  <div id="modal-x">&#x2715;</div>
+  <div id="modal-wrap">
+    <div id="modal-phone"><div id="modal-screen"></div></div>
+    <div id="modal-info">
+      <div id="m-icon"></div>
+      <div id="m-name"></div>
+      <div id="m-cat"></div>
+      <div id="m-desc"></div>
+      <a id="m-btn" href="#" target="_blank" rel="noopener">&#x1F680; LAUNCH APP</a>
+    </div>
+  </div>
 </div>
-
-<div id="dots"></div>
-<div id="hint">DRAG TO ROTATE &nbsp;·&nbsp; CLICK CARD TO EXPLORE</div>
-
-<!-- Three.js -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
-
 <script>
-/* ═══════════════════════════════════════════
-   APP DATA
-═══════════════════════════════════════════ */
-const APPS = [
-  {
-    name: "Cupid",
-    icon: "💝",
-    tagline: "Shared moments on your partner's screen",
-    desc: "iOS couples app that puts your shared photos right on each other's home screen widget. Always close, always together.",
-    category: "iOS App",
-    colors: ["#ff6b6b","#ee0979"],
-    url: "https://gyeningcorp.github.io/SUNDRY/cupid-app/"
-  },
-  {
-    name: "Pittsburgh Kart",
-    icon: "🏎️",
-    tagline: "Street-view racing through the Burgh",
-    desc: "First-person kart racer through real Pittsburgh streets. Dodge traffic on Google Street View roads.",
-    category: "Web Game",
-    colors: ["#ff416c","#ff4b2b"],
-    url: "https://gyeningcorp.github.io/SUNDRY/pittsburgh-kart/"
-  },
-  {
-    name: "Go-Gig",
-    icon: "🌿",
-    tagline: "Outdoor services on demand",
-    desc: "Customer-priced marketplace for lawn care, snow removal, pressure washing & more across Pittsburgh.",
-    category: "Marketplace",
-    colors: ["#11998e","#38ef7d"],
-    url: "https://go-gig.org"
-  },
-  {
-    name: "Cows and Boys",
-    icon: "🤠",
-    tagline: "Herd cattle, dodge wolves",
-    desc: "Wrangle your herd across the open trail. Lasso skills and quick reflexes separate legends from losers.",
-    category: "iOS Game",
-    colors: ["#f7971e","#ffd200"],
-    url: "https://gyeningcorp.github.io/cowboy-app/"
-  },
-  {
-    name: "Tokenizer",
-    icon: "🧠",
-    tagline: "See every AI token in real time",
-    desc: "Browser extension that counts tokens, estimates cost, and analyzes your prompts across ChatGPT, Claude & Gemini.",
-    category: "Browser Extension",
-    colors: ["#6a11cb","#2575fc"],
-    url: "https://tokenroute.dev"
-  },
-  {
-    name: "Packet Follower",
-    icon: "🌐",
-    tagline: "Watch packets travel the world in 3D",
-    desc: "Real-time 3D network packet tracer. See your traffic hop across the globe as it happens.",
-    category: "SaaS · Network Tool",
-    colors: ["#00c6ff","#0072ff"],
-    url: "https://github.com/gyeningcorp/packet-follower"
-  },
-  {
-    name: "Verses",
-    icon: "📖",
-    tagline: "Scripture, beautifully delivered",
-    desc: "Daily Bible verse app for iOS with beautiful typography, themes, and personal verse collections.",
-    category: "iOS App",
-    colors: ["#c9a227","#f5e6a3"],
-    url: "https://gyeningcorp.github.io/verses-app/"
-  },
-  {
-    name: "CCNA Drill",
-    icon: "📡",
-    tagline: "Pass your CCNA, no excuses",
-    desc: "Adaptive flashcard drill engine for Cisco CCNA exam prep. Targets your weak spots every session.",
-    category: "Study Tool",
-    colors: ["#f46b45","#eea849"],
-    url: "https://gyeningcorp.github.io/ccna-drill/"
-  },
-  {
-    name: "CivicRead",
-    icon: "📜",
-    tagline: "Laws, explained like you're 10",
-    desc: "AI that reads state legislation and returns plain-English, zero-bias summaries anyone can understand.",
-    category: "Civic Tech",
-    colors: ["#1a1a2e","#16213e"],
-    url: "https://gyeningcorp.github.io/civicread/"
-  },
-  {
-    name: "Stemify",
-    icon: "🎵",
-    tagline: "Separate any song in seconds",
-    desc: "Upload a track and isolate vocals, drums, bass and instrumentals instantly. Creator-grade stems, free.",
-    category: "Audio Tool",
-    colors: ["#833ab4","#fd1d1d","#fcb045"],
-    url: "https://gyeningcorp.github.io/stemify/"
-  },
-  {
-    name: "Sticker Quest",
-    icon: "🎮",
-    tagline: "Collect. Trade. Stick it everywhere",
-    desc: "Casual sticker collection game. Earn rare stickers, complete sets, and build your ultimate album.",
-    category: "Game",
-    colors: ["#f953c6","#b91d73"],
-    url: "https://gyeningcorp.github.io/sticker-quest/"
-  },
-  {
-    name: "Spoke",
-    icon: "🎤",
-    tagline: "Voice notes, elevated",
-    desc: "iOS voice notes app with auto-transcription, smart tagging, and instant sharing. Think faster, type less.",
-    category: "iOS App",
-    colors: ["#360033","#0b8793"],
-    url: "https://gyeningcorp.github.io/spoke-app/"
-  },
-  {
-    name: "KidCam Fun",
-    icon: "📸",
-    tagline: "Cameras kids can't resist",
-    desc: "Safe, fun camera app for kids with silly filters, stamps, and parent-approved photo albums.",
-    category: "iOS App",
-    colors: ["#f7ff00","#db36a4"],
-    url: "https://gyeningcorp.github.io/kidcam-fun/"
-  },
-  {
-    name: "FarmRoot",
-    icon: "🌱",
-    tagline: "Grow local food networks",
-    desc: "Connect local farmers with buyers in your community. Farm-to-table made dead simple.",
-    category: "Web App",
-    colors: ["#134e5e","#71b280"],
-    url: "https://gyeningcorp.github.io/farmroot/"
-  },
-  {
-    name: "I Forgot Parking",
-    icon: "🅿️",
-    tagline: "Never lose your car again",
-    desc: "One tap saves your parking spot with a pin, photo, and timer. Walks you right back.",
-    category: "Web App",
-    colors: ["#2193b0","#6dd5ed"],
-    url: "https://gyeningcorp.github.io/i-for-got-parking/"
-  },
-  {
-    name: "Budget App",
-    icon: "💰",
-    tagline: "Budgets that actually work",
-    desc: "Simple envelope-style budgeting. Set limits, track spending, stay out of the red.",
-    category: "Web App",
-    colors: ["#56ab2f","#a8e063"],
-    url: "https://gyeningcorp.github.io/budget-app/"
-  },
-  {
-    name: "TapPOS",
-    icon: "💳",
-    tagline: "Point of sale in your pocket",
-    desc: "Lightweight mobile POS for small vendors and market stalls. Accept cash, cards, and track inventory.",
-    category: "Web App",
-    colors: ["#0f3443","#34e89e"],
-    url: "https://gyeningcorp.github.io/tappos/"
-  },
-  {
-    name: "ReplayCount",
-    icon: "🔄",
-    tagline: "How many times did you loop that?",
-    desc: "Track how many times you've replayed a song, video, or episode. For the obsessed listeners.",
-    category: "Web App",
-    colors: ["#3a1c71","#d76d77","#ffaf7b"],
-    url: "https://gyeningcorp.github.io/replaycount/"
-  },
+const S={
+pittsburghKart:'<div style="width:100%;height:100%;background:linear-gradient(180deg,#060606,#1a0a00);position:relative;overflow:hidden;font-family:monospace"><div style="position:absolute;bottom:0;left:0;right:0;height:52%;background:linear-gradient(180deg,#252525,#1a1a1a)"><div style="position:absolute;left:50%;transform:translateX(-50%);top:0;bottom:0;width:3px;background:repeating-linear-gradient(#ffd700 0,#ffd700 18px,transparent 18px,transparent 36px)"></div></div><div style="position:absolute;bottom:52%;left:0;right:0;height:55px;display:flex;align-items:flex-end;gap:2px;padding:0 8px"><div style="width:14px;height:48px;background:#1a3050"></div><div style="width:9px;height:34px;background:#142840"></div><div style="width:18px;height:55px;background:#1e3a5f"></div><div style="width:11px;height:40px;background:#162d4a"></div><div style="width:16px;height:52px;background:#1a3258"></div><div style="flex:1;height:44px;background:#1e3a5f"></div><div style="width:13px;height:38px;background:#162d4a"></div></div><div style="position:absolute;top:32px;left:0;right:0;text-align:center;font-size:7px;font-weight:900;color:#ff416c;letter-spacing:.2em">PITTSBURGH KART</div><div style="position:absolute;top:36px;right:8px;background:rgba(0,0,0,.75);border:1px solid #ffd70055;border-radius:6px;padding:3px 6px;text-align:center"><div style="font-size:6px;color:#ffd70077">POS</div><div style="font-size:12px;font-weight:900;color:#ffd700">2nd</div></div><div style="position:absolute;bottom:56px;left:50%;transform:translateX(-50%);font-size:18px">&#x1F3CE;&#xFE0F;</div><div style="position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.75);border:1px solid #ff416c44;border-radius:6px;padding:3px 7px"><div style="font-size:16px;font-weight:900;color:#ff416c;line-height:1">42</div><div style="font-size:6px;color:#ff416c77;letter-spacing:.1em">MPH</div></div></div>',
+
+goGig:'<div style="width:100%;height:100%;background:#0a1f0f;font-family:system-ui;display:flex;flex-direction:column"><div style="background:#0d2e13;padding:7px 10px;display:flex;align-items:center;gap:6px"><span style="font-size:13px">&#x1F33F;</span><span style="font-size:10px;font-weight:700;color:#38ef7d">GO-GIG</span><div style="margin-left:auto;font-size:8px;color:#38ef7d77">Pittsburgh, PA</div></div><div style="flex:1;background:linear-gradient(135deg,#0a1a0f,#0d2813);position:relative;overflow:hidden"><div style="position:absolute;inset:0;background-image:linear-gradient(#ffffff05 1px,transparent 1px),linear-gradient(90deg,#ffffff05 1px,transparent 1px);background-size:18px 18px"></div><div style="position:absolute;top:28%;left:33%;font-size:14px">&#x1F4CD;</div><div style="position:absolute;top:48%;left:58%;font-size:14px">&#x1F4CD;</div><div style="position:absolute;top:18%;left:63%;font-size:12px">&#x1F4CD;</div></div><div style="padding:7px;background:#0a1f0f;display:flex;flex-direction:column;gap:4px"><div style="background:#0d2e13;border:1px solid #38ef7d1a;border-radius:7px;padding:5px 7px;display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:9px;font-weight:700;color:#fff">Lawn Care</div><div style="font-size:7px;color:#38ef7d77">&#x2B50; 4.9 &middot; 0.8 mi</div></div><div style="font-size:10px;font-weight:800;color:#38ef7d">$35</div></div><div style="background:#0d2e13;border:1px solid #38ef7d1a;border-radius:7px;padding:5px 7px;display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:9px;font-weight:700;color:#fff">Snow Removal</div><div style="font-size:7px;color:#38ef7d77">&#x2B50; 4.7 &middot; 1.2 mi</div></div><div style="font-size:10px;font-weight:800;color:#38ef7d">$50</div></div></div></div>',
+
+cowsAndBoys:'<div style="width:100%;height:100%;background:linear-gradient(180deg,#87ceeb 0%,#87ceeb 38%,#c4a35a 38%,#a0864a 100%);font-family:monospace;position:relative;overflow:hidden"><div style="position:absolute;top:8px;right:18px;width:26px;height:26px;border-radius:50%;background:#ffd700;box-shadow:0 0 16px #ffd700"></div><div style="position:absolute;top:12px;left:12px;background:#fff;border-radius:10px;width:30px;height:10px;opacity:.8"></div><div style="position:absolute;top:26%;left:0;right:0;height:36px;background:#8B7355;clip-path:polygon(0% 100%,15% 28%,30% 78%,50% 18%,70% 68%,85% 32%,100% 100%)"></div><div style="position:absolute;bottom:34%;right:14px;font-size:16px">&#x1F335;</div><div style="position:absolute;bottom:28%;left:16px;font-size:18px">&#x1F404;</div><div style="position:absolute;bottom:24%;left:44px;font-size:14px">&#x1F404;</div><div style="position:absolute;bottom:26%;left:50%;transform:translateX(-50%);font-size:20px">&#x1F920;</div><div style="position:absolute;top:34px;left:0;right:0;padding:0 9px"><div style="font-size:6px;color:#1a0a00;font-weight:700;margin-bottom:2px">HEALTH</div><div style="background:#ff000022;border-radius:4px;height:5px;overflow:hidden"><div style="width:75%;height:100%;background:linear-gradient(90deg,#00ff00,#88ff00)"></div></div></div><div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.5);padding:5px 9px;display:flex;justify-content:space-between;align-items:center"><div style="font-size:7px;color:#ffd700;font-weight:700">HERD: 8/10</div><div style="font-size:14px">&#x1F920;</div><div style="font-size:7px;color:#ff6b6b;font-weight:700">WAVE 3</div></div></div>',
+
+cupid:'<div style="width:100%;height:100%;background:#1a0010;font-family:system-ui;display:flex;flex-direction:column"><div style="background:#2a0018;padding:7px 10px;display:flex;align-items:center;justify-content:center;gap:6px"><span style="font-size:13px">&#x1F49D;</span><span style="font-size:10px;font-weight:700;color:#ff6b6b">CUPID</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;gap:9px"><div style="font-size:8px;color:rgba(255,107,107,.5);letter-spacing:.2em;text-transform:uppercase">Widget Preview</div><div style="width:105px;height:105px;position:relative"><div style="position:absolute;left:0;top:8px;width:50px;height:66px;border-radius:10px;background:linear-gradient(135deg,#ff6b6b,#ee0979);display:flex;align-items:center;justify-content:center;font-size:22px">&#x1F469;</div><div style="position:absolute;right:0;top:8px;width:50px;height:66px;border-radius:10px;background:linear-gradient(135deg,#c471ed,#12c2e9);display:flex;align-items:center;justify-content:center;font-size:22px">&#x1F468;</div><div style="position:absolute;top:-2px;left:50%;transform:translateX(-50%);font-size:20px">&#x1F497;</div></div><div style="background:#2a0018;border:1px solid #ff6b6b1a;border-radius:8px;padding:5px 10px;text-align:center"><div style="font-size:7px;color:rgba(255,107,107,.45)">Last shared</div><div style="font-size:9px;font-weight:700;color:#ff6b6b">2 min ago &#x2665;</div></div></div><div style="background:#2a0018;padding:7px;text-align:center"><div style="font-size:8px;color:rgba(255,107,107,.5)">Tap to share a moment</div></div></div>',
+
+tokenizer:'<div style="width:100%;height:100%;background:#0d0d1a;font-family:monospace;display:flex;flex-direction:column"><div style="background:#13132a;padding:7px 10px;display:flex;align-items:center;gap:6px"><span style="font-size:13px">&#x1F9E0;</span><span style="font-size:9px;font-weight:700;color:#6a11cb">TOKENIZER</span></div><div style="padding:7px;flex:1;display:flex;flex-direction:column;gap:5px"><div style="background:#1a1a3a;border-radius:7px;padding:5px 7px;align-self:flex-end;max-width:92%"><div style="font-size:8px;color:#aaa">Explain quantum computing in simple terms for a 10 year old...</div></div><div style="display:flex;justify-content:flex-end;gap:3px"><div style="background:#6a11cb22;border:1px solid #6a11cb44;border-radius:5px;padding:2px 5px;font-size:7px;color:#6a11cb">12 tokens</div><div style="background:#2575fc22;border:1px solid #2575fc44;border-radius:5px;padding:2px 5px;font-size:7px;color:#2575fc">~$0.0002</div></div><div style="background:#13132a;border-radius:7px;padding:7px;margin-top:3px"><div style="font-size:7px;color:#888;margin-bottom:5px">USAGE &middot; GPT-4o</div><div style="margin-bottom:5px"><div style="display:flex;justify-content:space-between;font-size:6px;color:#666;margin-bottom:2px"><span>Input</span><span>1,247 / 128k</span></div><div style="background:#1a1a3a;border-radius:3px;height:4px;overflow:hidden"><div style="width:1%;height:100%;background:linear-gradient(90deg,#6a11cb,#2575fc)"></div></div></div><div><div style="display:flex;justify-content:space-between;font-size:6px;color:#666;margin-bottom:2px"><span>Output</span><span>342 tokens</span></div><div style="background:#1a1a3a;border-radius:3px;height:4px;overflow:hidden"><div style="width:38%;height:100%;background:linear-gradient(90deg,#6a11cb,#2575fc)"></div></div></div></div></div></div>',
+
+packetFollower:'<div style="width:100%;height:100%;background:#030a14;font-family:monospace;position:relative;overflow:hidden"><svg style="position:absolute;inset:0;width:100%;height:100%" xmlns="http://www.w3.org/2000/svg"><line x1="28" y1="75" x2="78" y2="55" stroke="#00c6ff" stroke-width="1" opacity=".4"/><line x1="78" y1="55" x2="128" y2="85" stroke="#00c6ff" stroke-width="1" opacity=".4"/><line x1="128" y1="85" x2="108" y2="138" stroke="#0072ff" stroke-width="1" opacity=".4"/><line x1="108" y1="138" x2="48" y2="158" stroke="#0072ff" stroke-width="1" opacity=".4"/><line x1="48" y1="158" x2="28" y2="75" stroke="#00c6ff" stroke-width="1" opacity=".3"/><circle r="3" fill="#00f5ff"><animateMotion dur="2.5s" repeatCount="indefinite" path="M28,75 L78,55 L128,85 L108,138 L48,158 Z"/></circle><circle cx="28" cy="75" r="5" fill="#00c6ff" opacity=".8"/><circle cx="78" cy="55" r="4" fill="#0072ff" opacity=".8"/><circle cx="128" cy="85" r="6" fill="#00c6ff" opacity=".8"/><circle cx="108" cy="138" r="4" fill="#0072ff" opacity=".8"/><circle cx="48" cy="158" r="5" fill="#00c6ff" opacity=".8"/></svg><div style="position:absolute;top:0;left:0;right:0;background:rgba(3,10,20,.9);padding:7px 10px;display:flex;align-items:center;gap:6px"><span style="font-size:13px">&#x1F310;</span><span style="font-size:9px;font-weight:700;color:#00c6ff">PACKET FOLLOWER</span></div><div style="position:absolute;bottom:0;left:0;right:0;background:rgba(3,10,20,.9);padding:7px 9px"><div style="font-size:6px;color:#00c6ff77;margin-bottom:3px">ACTIVE TRACE</div><div style="font-size:8px;color:#00c6ff">192.168.1.1 &#x2192; 8.8.8.8</div><div style="font-size:7px;color:#0072ff;margin-top:2px">5 hops &middot; 12ms latency</div></div></div>',
+
+verses:'<div style="width:100%;height:100%;background:linear-gradient(160deg,#1a1200,#2a1f00);font-family:Georgia,serif;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;text-align:center"><div style="font-size:16px;margin-bottom:7px;opacity:.65">&#x271D;</div><div style="width:38px;height:1px;background:linear-gradient(90deg,transparent,#c9a227,transparent);margin-bottom:12px"></div><div style="font-size:10px;color:#f5e6a3;line-height:1.72;font-style:italic;margin-bottom:9px">&ldquo;For I know the plans I have for you, plans to prosper you and not to harm you.&rdquo;</div><div style="font-size:8px;color:#c9a227;letter-spacing:.2em">JEREMIAH 29:11</div><div style="width:38px;height:1px;background:linear-gradient(90deg,transparent,#c9a227,transparent);margin-top:12px"></div><div style="font-size:7px;color:rgba(201,162,39,.45);margin-top:7px;letter-spacing:.15em">TODAY\'S VERSE</div></div>',
+
+ccnaDrill:'<div style="width:100%;height:100%;background:#0d0800;font-family:system-ui;display:flex;flex-direction:column"><div style="background:#1a1000;padding:7px 10px;display:flex;align-items:center;gap:6px"><span style="font-size:13px">&#x1F4E1;</span><span style="font-size:9px;font-weight:700;color:#f46b45">CCNA DRILL</span><div style="margin-left:auto;font-size:7px;color:#eea849">73% mastered</div></div><div style="flex:1;padding:8px;display:flex;flex-direction:column;gap:7px"><div style="background:#1a1000;border:1px solid #f46b4522;border-radius:8px;padding:8px;flex:1"><div style="font-size:6px;color:#f46b4555;margin-bottom:5px;letter-spacing:.2em">QUESTION 14/20</div><div style="font-size:9px;color:#fff;line-height:1.55">What is the default administrative distance for OSPF routes?</div><div style="margin-top:8px;background:#0d0800;border-radius:5px;padding:5px;font-family:monospace;font-size:7px;color:#f46b45">R1 &#x2500;&#x2500;[OSPF]&#x2500;&#x2500; R2<br/>AD = ?</div></div><div style="display:flex;flex-direction:column;gap:3px"><div style="background:#1a1000;border:1px solid #333;border-radius:6px;padding:4px 7px;font-size:8px;color:#888">A) 90</div><div style="background:#eea84922;border:1px solid #eea849;border-radius:6px;padding:4px 7px;font-size:8px;color:#eea849;font-weight:700">B) 110 &#x2713;</div><div style="background:#1a1000;border:1px solid #333;border-radius:6px;padding:4px 7px;font-size:8px;color:#888">C) 120</div></div></div></div>',
+
+civicRead:'<div style="width:100%;height:100%;background:#030a14;font-family:system-ui;display:flex;flex-direction:column"><div style="background:#05122a;padding:7px 10px;display:flex;align-items:center;gap:6px"><span style="font-size:13px">&#x1F4DC;</span><span style="font-size:9px;font-weight:700;color:#6d98de">CIVICREAD</span></div><div style="padding:9px;flex:1;display:flex;flex-direction:column;gap:7px"><div style="background:#05122a;border-left:3px solid #6d98de;border-radius:0 7px 7px 0;padding:5px 7px"><div style="font-size:6px;color:#6d98de77;letter-spacing:.1em">SB 1234 &middot; Pennsylvania</div><div style="font-size:9px;color:#fff;font-weight:600;margin-top:2px">Clean Water Protection Act</div></div><div><div style="font-size:6px;color:#6d98de;letter-spacing:.2em;margin-bottom:4px">PLAIN ENGLISH SUMMARY</div><div style="font-size:8px;color:rgba(255,255,255,.65);line-height:1.65">This bill stops factories from dumping dirty stuff in rivers. Companies that break the rules pay a fine and clean up the mess.</div></div><div style="display:flex;gap:6px"><div style="background:#05122a;border-radius:7px;padding:5px 7px;flex:1;text-align:center"><div style="font-size:13px;font-weight:800;color:#6d98de">8th</div><div style="font-size:6px;color:rgba(255,255,255,.35)">Grade Level</div></div><div style="background:#05122a;border-radius:7px;padding:5px 7px;flex:1;text-align:center"><div style="font-size:13px;font-weight:800;color:#c89b59">0</div><div style="font-size:6px;color:rgba(255,255,255,.35)">Bias Score</div></div></div></div></div>',
+
+stemify:'<div style="width:100%;height:100%;background:#0d0014;font-family:system-ui;display:flex;flex-direction:column"><div style="background:#140024;padding:7px 10px;display:flex;align-items:center;gap:6px"><span style="font-size:13px">&#x1F3B5;</span><span style="font-size:9px;font-weight:700;color:#833ab4">STEMIFY</span></div><div style="padding:7px;flex:1;display:flex;flex-direction:column;gap:5px"><div style="font-size:8px;font-weight:600;color:#fff;text-align:center;margin-bottom:2px">Blinding Lights.mp3</div><div style="background:#140024;border-radius:7px;padding:5px 7px"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:8px;color:#fff">&#x1F3A4; Vocals</span><span style="font-size:7px;color:#833ab4">&#x25CF;</span></div><div style="background:#0d0014;border-radius:3px;height:16px;overflow:hidden;display:flex;align-items:center;padding:0 3px;gap:1px"><div style="width:2px;height:10px;background:#833ab4;border-radius:1px"></div><div style="width:2px;height:6px;background:#833ab4;border-radius:1px"></div><div style="width:2px;height:13px;background:#833ab4;border-radius:1px"></div><div style="width:2px;height:4px;background:#833ab4;border-radius:1px"></div><div style="width:2px;height:10px;background:#833ab4;border-radius:1px"></div><div style="width:2px;height:8px;background:#833ab4;border-radius:1px"></div><div style="width:2px;height:15px;background:#833ab4;border-radius:1px"></div><div style="width:2px;height:6px;background:#833ab4;border-radius:1px"></div><div style="width:2px;height:10px;background:#833ab4;border-radius:1px"></div><div style="width:2px;height:4px;background:#833ab4;border-radius:1px"></div></div></div><div style="background:#140024;border-radius:7px;padding:5px 7px"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:8px;color:#fff">&#x1F941; Drums</span><span style="font-size:7px;color:#fd1d1d">&#x25CF;</span></div><div style="background:#0d0014;border-radius:3px;height:16px;overflow:hidden;display:flex;align-items:center;padding:0 3px;gap:1px"><div style="width:2px;height:16px;background:#fd1d1d;border-radius:1px"></div><div style="width:2px;height:4px;background:#fd1d1d;border-radius:1px"></div><div style="width:2px;height:16px;background:#fd1d1d;border-radius:1px"></div><div style="width:2px;height:4px;background:#fd1d1d;border-radius:1px"></div><div style="width:2px;height:16px;background:#fd1d1d;border-radius:1px"></div><div style="width:2px;height:4px;background:#fd1d1d;border-radius:1px"></div><div style="width:2px;height:16px;background:#fd1d1d;border-radius:1px"></div><div style="width:2px;height:4px;background:#fd1d1d;border-radius:1px"></div><div style="width:2px;height:16px;background:#fd1d1d;border-radius:1px"></div><div style="width:2px;height:4px;background:#fd1d1d;border-radius:1px"></div></div></div><div style="background:#140024;border-radius:7px;padding:5px 7px"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:8px;color:#fff">&#x1F3B8; Bass</span><span style="font-size:7px;color:#fcb045">&#x25CF;</span></div><div style="background:#0d0014;border-radius:3px;height:16px;overflow:hidden;display:flex;align-items:center;padding:0 3px;gap:1px"><div style="width:2px;height:6px;background:#fcb045;border-radius:1px"></div><div style="width:2px;height:11px;background:#fcb045;border-radius:1px"></div><div style="width:2px;height:8px;background:#fcb045;border-radius:1px"></div><div style="width:2px;height:13px;background:#fcb045;border-radius:1px"></div><div style="width:2px;height:6px;background:#fcb045;border-radius:1px"></div><div style="width:2px;height:10px;background:#fcb045;border-radius:1px"></div><div style="width:2px;height:8px;background:#fcb045;border-radius:1px"></div><div style="width:2px;height:4px;background:#fcb045;border-radius:1px"></div><div style="width:2px;height:11px;background:#fcb045;border-radius:1px"></div><div style="width:2px;height:6px;background:#fcb045;border-radius:1px"></div></div></div></div></div>',
+
+stickerQuest:'<div style="width:100%;height:100%;background:#0d0014;font-family:system-ui;display:flex;flex-direction:column"><div style="background:#1a0025;padding:7px 10px;display:flex;align-items:center;gap:6px"><span style="font-size:13px">&#x1F3AE;</span><span style="font-size:9px;font-weight:700;color:#f953c6">STICKER QUEST</span></div><div style="padding:7px;flex:1"><div style="font-size:7px;color:rgba(249,83,198,.55);letter-spacing:.15em;margin-bottom:5px">ALBUM &middot; SET 1</div><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:3px"><div style="background:#2a0040;border:1px solid #f953c644;border-radius:5px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:14px">&#x2B50;</div><div style="background:#2a0040;border:1px solid #f953c644;border-radius:5px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:14px">&#x1F525;</div><div style="background:#2a0040;border:1px solid #f953c644;border-radius:5px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:14px">&#x1F48E;</div><div style="background:#2a0040;border:1px solid #f953c644;border-radius:5px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:14px">&#x1F319;</div><div style="background:#2a0040;border:1px solid #f953c644;border-radius:5px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:14px">&#x1F98B;</div><div style="background:#2a0040;border:1px solid #f953c644;border-radius:5px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:14px">&#x1F3AF;</div><div style="background:#2a0040;border:1px solid #f953c644;border-radius:5px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:14px">&#x1F3C6;</div><div style="background:#2a0040;border:1px solid #f953c644;border-radius:5px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:14px">&#x1F308;</div><div style="background:#2a0040;border:1px solid #f953c644;border-radius:5px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:14px">&#x26A1;</div><div style="background:#2a0040;border:1px solid #f953c644;border-radius:5px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:14px">&#x1F4AB;</div><div style="background:#1a0025;border:1px solid #333;border-radius:5px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:12px;color:#444">?</div><div style="background:#1a0025;border:1px solid #333;border-radius:5px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:12px;color:#444">?</div><div style="background:#1a0025;border:1px solid #333;border-radius:5px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:12px;color:#444">?</div><div style="background:#1a0025;border:1px solid #333;border-radius:5px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:12px;color:#444">?</div><div style="background:#1a0025;border:1px solid #333;border-radius:5px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:12px;color:#444">?</div></div><div style="margin-top:7px;background:#1a0025;border-radius:7px;padding:5px 7px;display:flex;justify-content:space-between"><div style="font-size:7px;color:#f953c6">10/15 collected</div><div style="font-size:7px;color:rgba(255,255,255,.35)">67%</div></div></div></div>',
+
+spoke:'<div style="width:100%;height:100%;background:#030a14;font-family:system-ui;display:flex;flex-direction:column"><div style="background:#040e1e;padding:7px 10px;display:flex;align-items:center;gap:6px"><span style="font-size:13px">&#x1F3A4;</span><span style="font-size:9px;font-weight:700;color:#0b8793">SPOKE</span></div><div style="padding:9px;flex:1;display:flex;flex-direction:column;gap:7px"><div style="background:#040e1e;border-radius:10px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:5px"><div style="width:100%;height:28px;display:flex;align-items:center;justify-content:center;gap:1px"><div style="width:2px;height:8px;background:#0b8793;border-radius:2px"></div><div style="width:2px;height:18px;background:#0b8793;border-radius:2px"></div><div style="width:2px;height:12px;background:#0b8793;border-radius:2px"></div><div style="width:2px;height:24px;background:#0b8793;border-radius:2px"></div><div style="width:2px;height:10px;background:#0b8793;border-radius:2px"></div><div style="width:2px;height:20px;background:#0b8793;border-radius:2px"></div><div style="width:2px;height:16px;background:#0b8793;border-radius:2px"></div><div style="width:2px;height:26px;background:#0b8793;border-radius:2px"></div><div style="width:2px;height:8px;background:#0b8793;border-radius:2px"></div><div style="width:2px;height:14px;background:#0b8793;border-radius:2px"></div><div style="width:2px;height:22px;background:#0b8793;border-radius:2px"></div><div style="width:2px;height:6px;background:#0b8793;border-radius:2px"></div><div style="width:2px;height:18px;background:#0b8793;border-radius:2px"></div><div style="width:2px;height:12px;background:#0b8793;border-radius:2px"></div><div style="width:2px;height:26px;background:#0b8793;border-radius:2px"></div></div><div style="font-size:7px;color:#0b879366">00:32 &middot; Recording...</div></div><div><div style="font-size:6px;color:#0b8793;letter-spacing:.2em;margin-bottom:4px">TRANSCRIPT</div><div style="font-size:8px;color:rgba(255,255,255,.58);line-height:1.65">&ldquo;Remember to pick up groceries on the way home, especially the milk and eggs...&rdquo;</div></div><div style="display:flex;gap:4px"><div style="background:#040e1e;border:1px solid #0b879333;border-radius:5px;padding:2px 6px;font-size:7px;color:#0b8793">#reminder</div><div style="background:#040e1e;border:1px solid #0b879333;border-radius:5px;padding:2px 6px;font-size:7px;color:#0b8793">#personal</div></div></div></div>',
+
+kidCam:'<div style="width:100%;height:100%;background:#0a0a1a;position:relative;overflow:hidden"><div style="position:absolute;inset:0;background:linear-gradient(135deg,#1a0a2e,#0a1a0e)"><div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,0,128,.1),rgba(0,255,200,.1),rgba(0,128,255,.1))"></div></div><div style="position:absolute;top:28%;left:50%;transform:translateX(-50%);font-size:26px;text-align:center;width:100%">&#x1F436;</div><div style="position:absolute;top:14px;left:11px;font-size:18px;transform:rotate(-15deg)">&#x2B50;</div><div style="position:absolute;top:18px;right:14px;font-size:16px;transform:rotate(10deg)">&#x1F308;</div><div style="position:absolute;bottom:54px;left:14px;font-size:14px;transform:rotate(-5deg)">&#x1F496;</div><div style="position:absolute;top:38px;left:9px;width:14px;height:14px;border-top:2px solid #fff;border-left:2px solid #fff"></div><div style="position:absolute;top:38px;right:9px;width:14px;height:14px;border-top:2px solid #fff;border-right:2px solid #fff"></div><div style="position:absolute;bottom:48px;left:9px;width:14px;height:14px;border-bottom:2px solid #fff;border-left:2px solid #fff"></div><div style="position:absolute;bottom:48px;right:9px;width:14px;height:14px;border-bottom:2px solid #fff;border-right:2px solid #fff"></div><div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);padding:6px;display:flex;justify-content:center;align-items:center;gap:14px"><div style="font-size:14px">&#x1F3A8;</div><div style="width:34px;height:34px;border-radius:50%;background:#fff;border:3px solid rgba(255,255,255,.45)"></div><div style="font-size:14px">&#x2728;</div></div></div>',
+
+farmRoot:'<div style="width:100%;height:100%;background:#0a1a0a;font-family:system-ui;display:flex;flex-direction:column"><div style="background:#0d2010;padding:7px 10px;display:flex;align-items:center;gap:6px"><span style="font-size:13px">&#x1F331;</span><span style="font-size:9px;font-weight:700;color:#71b280">FARMROOT</span></div><div style="padding:7px;flex:1;display:flex;flex-direction:column;gap:5px"><div style="background:#0d2010;border-radius:9px;padding:7px;display:flex;gap:7px;align-items:center"><div style="font-size:22px">&#x1F468;&#x200D;&#x1F33E;</div><div><div style="font-size:9px;font-weight:700;color:#fff">Miller\'s Farm</div><div style="font-size:7px;color:#71b28077">&#x2B50; 4.9 &middot; 3.2 mi &middot; Pittsburgh</div></div></div><div style="background:#0d2010;border:1px solid #71b28018;border-radius:7px;padding:5px 7px;display:flex;justify-content:space-between;align-items:center"><div style="display:flex;align-items:center;gap:5px"><span style="font-size:12px">&#x1F345;</span><span style="font-size:8px;color:#ddd">Heirloom Tomatoes</span></div><span style="font-size:9px;font-weight:700;color:#71b280">$4/lb</span></div><div style="background:#0d2010;border:1px solid #71b28018;border-radius:7px;padding:5px 7px;display:flex;justify-content:space-between;align-items:center"><div style="display:flex;align-items:center;gap:5px"><span style="font-size:12px">&#x1F96C;</span><span style="font-size:8px;color:#ddd">Fresh Lettuce</span></div><span style="font-size:9px;font-weight:700;color:#71b280">$2.50</span></div><div style="background:#0d2010;border:1px solid #71b28018;border-radius:7px;padding:5px 7px;display:flex;justify-content:space-between;align-items:center"><div style="display:flex;align-items:center;gap:5px"><span style="font-size:12px">&#x1F955;</span><span style="font-size:8px;color:#ddd">Carrots</span></div><span style="font-size:9px;font-weight:700;color:#71b280">$3/bunch</span></div></div></div>',
+
+parking:'<div style="width:100%;height:100%;background:#030a14;font-family:system-ui;display:flex;flex-direction:column"><div style="background:#040e1e;padding:7px 10px;display:flex;align-items:center;gap:5px"><span style="font-size:13px">&#x1F17F;&#xFE0F;</span><span style="font-size:8px;font-weight:700;color:#6dd5ed">I FORGOT PARKING</span></div><div style="flex:1;position:relative;overflow:hidden"><div style="position:absolute;inset:0;background:linear-gradient(135deg,#0a1520,#071018)"><div style="position:absolute;inset:0;background-image:linear-gradient(#ffffff05 1px,transparent 1px),linear-gradient(90deg,#ffffff05 1px,transparent 1px);background-size:16px 16px"></div><div style="position:absolute;top:38%;left:0;right:0;height:12px;background:#0d1e30"></div><div style="position:absolute;left:38%;top:0;bottom:0;width:9px;background:#0d1e30"></div><div style="position:absolute;top:calc(38% - 22px);left:calc(38% - 4px);font-size:22px">&#x1F4CD;</div></div></div><div style="background:#040e1e;padding:7px 9px;display:flex;flex-direction:column;gap:3px"><div style="font-size:8px;font-weight:700;color:#2193b0">Parked at 5th &amp; Forbes</div><div style="display:flex;justify-content:space-between"><div style="font-size:7px;color:rgba(255,255,255,.45)">Meter expires</div><div style="font-size:8px;font-weight:700;color:#6dd5ed">1:47:32 &#x23F1;</div></div></div></div>',
+
+budget:'<div style="width:100%;height:100%;background:#040d04;font-family:system-ui;display:flex;flex-direction:column"><div style="background:#081408;padding:7px 10px;display:flex;align-items:center;gap:6px"><span style="font-size:13px">&#x1F4B0;</span><span style="font-size:9px;font-weight:700;color:#56ab2f">BUDGET APP</span></div><div style="padding:7px;flex:1;display:flex;flex-direction:column;gap:6px"><div style="display:flex;justify-content:center;margin:3px 0"><div style="width:66px;height:66px;border-radius:50%;background:conic-gradient(#56ab2f 0% 40%,#a8e063 40% 65%,#f46b45 65% 80%,#2193b0 80% 100%);position:relative"><div style="position:absolute;inset:14px;border-radius:50%;background:#040d04;display:flex;align-items:center;justify-content:center"><div style="text-align:center"><div style="font-size:9px;font-weight:800;color:#56ab2f">$2.4k</div><div style="font-size:5px;color:rgba(255,255,255,.35)">left</div></div></div></div></div><div style="background:#081408;border-radius:7px;padding:5px 7px"><div style="display:flex;justify-content:space-between;margin-bottom:2px"><div style="font-size:8px;color:#ddd">&#x1F3E0; Housing</div><div style="font-size:8px;color:#56ab2f;font-weight:700">$1200/$1200</div></div><div style="background:#040d04;border-radius:3px;height:4px;overflow:hidden"><div style="width:100%;height:100%;background:linear-gradient(90deg,#56ab2f,#a8e063)"></div></div></div><div style="background:#081408;border-radius:7px;padding:5px 7px"><div style="display:flex;justify-content:space-between;margin-bottom:2px"><div style="font-size:8px;color:#ddd">&#x1F6D2; Food</div><div style="font-size:8px;color:#56ab2f;font-weight:700">$310/$400</div></div><div style="background:#040d04;border-radius:3px;height:4px;overflow:hidden"><div style="width:77%;height:100%;background:linear-gradient(90deg,#56ab2f,#a8e063)"></div></div></div><div style="background:#081408;border-radius:7px;padding:5px 7px"><div style="display:flex;justify-content:space-between;margin-bottom:2px"><div style="font-size:8px;color:#ddd">&#x26FD; Transport</div><div style="font-size:8px;color:#a8e063;font-weight:700">$95/$150</div></div><div style="background:#040d04;border-radius:3px;height:4px;overflow:hidden"><div style="width:63%;height:100%;background:linear-gradient(90deg,#56ab2f,#a8e063)"></div></div></div></div></div>',
+
+tapPOS:'<div style="width:100%;height:100%;background:#030f09;font-family:system-ui;display:flex;flex-direction:column"><div style="background:#051510;padding:7px 10px;display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:5px"><span style="font-size:13px">&#x1F4B3;</span><span style="font-size:9px;font-weight:700;color:#34e89e">TAPPOS</span></div><div style="font-size:9px;color:#34e89e;font-weight:700">$47.50</div></div><div style="padding:7px;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;flex:1"><div style="background:#051510;border:1px solid #34e89e1a;border-radius:7px;padding:5px;display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:14px">&#x2615;</div><div style="font-size:6px;color:#ddd">Coffee</div><div style="font-size:7px;font-weight:700;color:#34e89e">$4.50</div></div><div style="background:#051510;border:1px solid #34e89e1a;border-radius:7px;padding:5px;display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:14px">&#x1F950;</div><div style="font-size:6px;color:#ddd">Pastry</div><div style="font-size:7px;font-weight:700;color:#34e89e">$3.25</div></div><div style="background:#051510;border:1px solid #34e89e1a;border-radius:7px;padding:5px;display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:14px">&#x1F9C3;</div><div style="font-size:6px;color:#ddd">Juice</div><div style="font-size:7px;font-weight:700;color:#34e89e">$4.00</div></div><div style="background:#051510;border:1px solid #34e89e1a;border-radius:7px;padding:5px;display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:14px">&#x1F36A;</div><div style="font-size:6px;color:#ddd">Cookie</div><div style="font-size:7px;font-weight:700;color:#34e89e">$2.50</div></div><div style="background:#051510;border:1px solid #34e89e1a;border-radius:7px;padding:5px;display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:14px">&#x1FAD6;</div><div style="font-size:6px;color:#ddd">Tea</div><div style="font-size:7px;font-weight:700;color:#34e89e">$3.75</div></div><div style="background:#051510;border:1px solid #34e89e1a;border-radius:7px;padding:5px;display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:14px">&#x1F4A7;</div><div style="font-size:6px;color:#ddd">Water</div><div style="font-size:7px;font-weight:700;color:#34e89e">$1.50</div></div></div><div style="padding:5px 7px 7px"><div style="background:linear-gradient(135deg,#0f3443,#34e89e);border-radius:9px;padding:7px;text-align:center;font-size:10px;font-weight:700;color:#000">Charge $47.50</div></div></div>',
+
+replayCount:'<div style="width:100%;height:100%;background:#0a0618;font-family:system-ui;display:flex;flex-direction:column"><div style="background:#12082a;padding:7px 10px;display:flex;align-items:center;gap:6px"><span style="font-size:13px">&#x1F504;</span><span style="font-size:9px;font-weight:700;color:#d76d77">REPLAYCOUNT</span></div><div style="padding:9px;flex:1;display:flex;flex-direction:column;gap:7px"><div style="background:#12082a;border-radius:10px;padding:9px;display:flex;gap:7px;align-items:center"><div style="width:36px;height:36px;border-radius:7px;background:linear-gradient(135deg,#3a1c71,#d76d77);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">&#x1F3B5;</div><div style="flex:1;min-width:0"><div style="font-size:9px;font-weight:700;color:#fff">Blinding Lights</div><div style="font-size:7px;color:rgba(255,255,255,.38)">The Weeknd</div></div><div style="text-align:center;flex-shrink:0"><div style="font-size:18px;font-weight:900;color:#d76d77">47</div><div style="font-size:6px;color:rgba(215,109,119,.45)">replays</div></div></div><div style="font-size:6px;color:#d76d7766;letter-spacing:.2em">TOP REPLAYS</div><div style="display:flex;align-items:center;gap:7px"><div style="font-size:12px">&#x1F3B5;</div><div style="flex:1;font-size:8px;color:#ddd">Save Your Tears</div><div style="font-size:8px;font-weight:700;color:#d76d77">32x</div></div><div style="display:flex;align-items:center;gap:7px"><div style="font-size:12px">&#x1F3B5;</div><div style="flex:1;font-size:8px;color:#ddd">Starboy</div><div style="font-size:8px;font-weight:700;color:#d76d77">28x</div></div><div style="display:flex;align-items:center;gap:7px"><div style="font-size:12px">&#x1F3B5;</div><div style="flex:1;font-size:8px;color:#ddd">Can\'t Feel My Face</div><div style="font-size:8px;font-weight:700;color:#d76d77">21x</div></div></div></div>'
+};
+
+const APPS=[
+{name:"Pittsburgh Kart",icon:"🏎️",tagline:"Street-view racing through the Burgh",desc:"First-person kart racer through real Pittsburgh streets. Dodge traffic on Google Street View roads.",category:"Web Game",colors:["#ff416c","#ff4b2b"],url:"https://gyeningcorp.github.io/SUNDRY/pittsburgh-kart/",screen:"pittsburghKart"},
+{name:"Go-Gig",icon:"🌿",tagline:"Outdoor services on demand",desc:"Customer-priced marketplace for lawn care, snow removal, pressure washing & more across Pittsburgh.",category:"Marketplace",colors:["#11998e","#38ef7d"],url:"https://go-gig.org",screen:"goGig"},
+{name:"Cows and Boys",icon:"🤠",tagline:"Herd cattle, dodge wolves",desc:"Wrangle your herd across the open trail. Lasso skills and quick reflexes separate legends from losers.",category:"iOS Game",colors:["#f7971e","#ffd200"],url:"https://gyeningcorp.github.io/cowboy-app/",screen:"cowsAndBoys"},
+{name:"Cupid",icon:"💝",tagline:"Shared moments on your partner's screen",desc:"iOS couples app that puts your shared photos right on each other's home screen widget.",category:"iOS App",colors:["#ff6b6b","#ee0979"],url:"https://gyeningcorp.github.io/SUNDRY/cupid-app/",screen:"cupid"},
+{name:"Tokenizer",icon:"🧠",tagline:"See every AI token in real time",desc:"Browser extension that counts tokens, estimates cost, and analyzes your prompts across ChatGPT, Claude & Gemini.",category:"Browser Extension",colors:["#6a11cb","#2575fc"],url:"https://tokenroute.dev",screen:"tokenizer"},
+{name:"Packet Follower",icon:"🌐",tagline:"Watch packets travel the world in 3D",desc:"Real-time 3D network packet tracer. See your traffic hop across the globe as it happens.",category:"SaaS · Network Tool",colors:["#00c6ff","#0072ff"],url:"https://github.com/gyeningcorp/packet-follower",screen:"packetFollower"},
+{name:"Verses",icon:"📖",tagline:"Scripture, beautifully delivered",desc:"Daily Bible verse app for iOS with beautiful typography, themes, and personal verse collections.",category:"iOS App",colors:["#c9a227","#f5e6a3"],url:"https://gyeningcorp.github.io/verses-app/",screen:"verses"},
+{name:"CCNA Drill",icon:"📡",tagline:"Pass your CCNA, no excuses",desc:"Adaptive flashcard drill engine for Cisco CCNA exam prep. Targets your weak spots every session.",category:"Study Tool",colors:["#f46b45","#eea849"],url:"https://gyeningcorp.github.io/ccna-drill/",screen:"ccnaDrill"},
+{name:"CivicRead",icon:"📜",tagline:"Laws, explained like you're 10",desc:"AI that reads state legislation and returns plain-English, zero-bias summaries anyone can understand.",category:"Civic Tech",colors:["#6d98de","#c89b59"],url:"https://gyeningcorp.github.io/civicread/",screen:"civicRead"},
+{name:"Stemify",icon:"🎵",tagline:"Separate any song in seconds",desc:"Upload a track and isolate vocals, drums, bass and instrumentals instantly. Creator-grade stems, free.",category:"Audio Tool",colors:["#833ab4","#fd1d1d","#fcb045"],url:"https://gyeningcorp.github.io/stemify/",screen:"stemify"},
+{name:"Sticker Quest",icon:"🎮",tagline:"Collect. Trade. Stick it everywhere",desc:"Casual sticker collection game. Earn rare stickers, complete sets, and build your ultimate album.",category:"Game",colors:["#f953c6","#b91d73"],url:"https://gyeningcorp.github.io/sticker-quest/",screen:"stickerQuest"},
+{name:"Spoke",icon:"🎤",tagline:"Voice notes, elevated",desc:"iOS voice notes app with auto-transcription, smart tagging, and instant sharing. Think faster, type less.",category:"iOS App",colors:["#0b8793","#360033"],url:"https://gyeningcorp.github.io/spoke-app/",screen:"spoke"},
+{name:"KidCam Fun",icon:"📸",tagline:"Cameras kids can't resist",desc:"Safe, fun camera app for kids with silly filters, stamps, and parent-approved photo albums.",category:"iOS App",colors:["#db36a4","#f7ff00"],url:"https://gyeningcorp.github.io/kidcam-fun/",screen:"kidCam"},
+{name:"FarmRoot",icon:"🌱",tagline:"Grow local food networks",desc:"Connect local farmers with buyers in your community. Farm-to-table made dead simple.",category:"Web App",colors:["#134e5e","#71b280"],url:"https://gyeningcorp.github.io/farmroot/",screen:"farmRoot"},
+{name:"I Forgot Parking",icon:"🅿️",tagline:"Never lose your car again",desc:"One tap saves your parking spot with a pin, photo, and timer. Walks you right back.",category:"Web App",colors:["#2193b0","#6dd5ed"],url:"https://gyeningcorp.github.io/i-for-got-parking/",screen:"parking"},
+{name:"Budget App",icon:"💰",tagline:"Budgets that actually work",desc:"Simple envelope-style budgeting. Set limits, track spending, stay out of the red.",category:"Web App",colors:["#56ab2f","#a8e063"],url:"https://gyeningcorp.github.io/budget-app/",screen:"budget"},
+{name:"TapPOS",icon:"💳",tagline:"Point of sale in your pocket",desc:"Lightweight mobile POS for small vendors and market stalls. Accept cash, cards, and track inventory.",category:"Web App",colors:["#0f3443","#34e89e"],url:"https://gyeningcorp.github.io/tappos/",screen:"tapPOS"},
+{name:"ReplayCount",icon:"🔄",tagline:"How many times did you loop that?",desc:"Track how many times you've replayed a song, video, or episode. For the obsessed listeners.",category:"Web App",colors:["#3a1c71","#d76d77","#ffaf7b"],url:"https://gyeningcorp.github.io/replaycount/",screen:"replayCount"}
 ];
 
-/* ═══════════════════════════════════════════
-   THREE.JS BACKGROUND
-═══════════════════════════════════════════ */
-(function initThree() {
-  const canvas = document.getElementById('bg');
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.setSize(innerWidth, innerHeight);
-
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 1000);
-  camera.position.z = 5;
-
-  // Stars
-  const starGeo = new THREE.BufferGeometry();
-  const starCount = 3000;
-  const starPositions = new Float32Array(starCount * 3);
-  for (let i = 0; i < starCount * 3; i++) starPositions[i] = (Math.random() - 0.5) * 400;
-  starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-  const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.18, transparent: true, opacity: 0.7 });
-  scene.add(new THREE.Points(starGeo, starMat));
-
-  // Neon grid floor
-  const gridHelper = new THREE.GridHelper(80, 40, 0x00f5ff, 0x0a0a2e);
-  gridHelper.position.y = -7;
-  gridHelper.material.opacity = 0.3;
-  gridHelper.material.transparent = true;
-  scene.add(gridHelper);
-
-  // Floating orbs (ambient light sources)
-  const orbColors = [0x00f5ff, 0xb400ff, 0xff2d78];
-  orbColors.forEach((c, i) => {
-    const geo = new THREE.SphereGeometry(0.08, 8, 8);
-    const mat = new THREE.MeshBasicMaterial({ color: c });
-    const orb = new THREE.Mesh(geo, mat);
-    const angle = (i / orbColors.length) * Math.PI * 2;
-    orb.position.set(Math.cos(angle) * 4, 0, Math.sin(angle) * 4);
-    scene.add(orb);
-    const light = new THREE.PointLight(c, 2, 15);
-    orb.add(light);
-    orb.userData.angle = angle;
-    orb.userData.radius = 4;
-    orb.userData.speed = 0.3 + i * 0.1;
-  });
-
-  // Nebula particles
-  const nebulaGeo = new THREE.BufferGeometry();
-  const nCount = 500;
-  const nPos = new Float32Array(nCount * 3);
-  const nCol = new Float32Array(nCount * 3);
-  const nebColors = [[0,0.96,1],[0.71,0,1],[1,0.18,0.47]];
-  for (let i = 0; i < nCount; i++) {
-    nPos[i*3]   = (Math.random()-0.5)*60;
-    nPos[i*3+1] = (Math.random()-0.5)*30;
-    nPos[i*3+2] = (Math.random()-0.5)*20 - 10;
-    const c = nebColors[Math.floor(Math.random()*3)];
-    nCol[i*3]=c[0]; nCol[i*3+1]=c[1]; nCol[i*3+2]=c[2];
-  }
-  nebulaGeo.setAttribute('position', new THREE.BufferAttribute(nPos, 3));
-  nebulaGeo.setAttribute('color', new THREE.BufferAttribute(nCol, 3));
-  const nebMat = new THREE.PointsMaterial({ size: 0.35, vertexColors: true, transparent: true, opacity: 0.25, blending: THREE.AdditiveBlending });
-  scene.add(new THREE.Points(nebulaGeo, nebMat));
-
-  window.addEventListener('resize', () => {
-    camera.aspect = innerWidth / innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(innerWidth, innerHeight);
-  });
-
-  let t = 0;
-  (function animate() {
-    requestAnimationFrame(animate);
-    t += 0.005;
-    // rotate stars slowly
-    scene.children[0].rotation.y = t * 0.05;
-    // move grid
-    gridHelper.material.opacity = 0.25 + Math.sin(t) * 0.05;
-    // animate orbs
-    scene.children.forEach(obj => {
-      if (obj.userData.angle !== undefined) {
-        obj.userData.angle += obj.userData.speed * 0.005;
-        obj.position.x = Math.cos(obj.userData.angle) * obj.userData.radius;
-        obj.position.z = Math.sin(obj.userData.angle) * obj.userData.radius;
-        obj.position.y = Math.sin(obj.userData.angle * 0.7) * 2;
-      }
-    });
-    renderer.render(scene, camera);
-  })();
+/* THREE.JS BG */
+(function(){
+  const cv=document.getElementById('bg');
+  const r=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
+  r.setPixelRatio(Math.min(devicePixelRatio,2));r.setSize(innerWidth,innerHeight);
+  const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,1000);
+  cam.position.z=6;
+  const sa=new Float32Array(5000*3);for(let i=0;i<5000*3;i++)sa[i]=(Math.random()-.5)*500;
+  const sp=new THREE.BufferGeometry();sp.setAttribute('position',new THREE.BufferAttribute(sa,3));
+  sc.add(new THREE.Points(sp,new THREE.PointsMaterial({color:0xffffff,size:.14,transparent:true,opacity:.65})));
+  const np=new Float32Array(600*3),nc=new Float32Array(600*3),NK=[[0,.96,1],[.71,0,1],[1,.18,.47],[1,.85,0]];
+  for(let i=0;i<600;i++){np[i*3]=(Math.random()-.5)*120;np[i*3+1]=(Math.random()-.5)*60;np[i*3+2]=(Math.random()-.5)*40-20;const c=NK[i%4];nc[i*3]=c[0];nc[i*3+1]=c[1];nc[i*3+2]=c[2];}
+  const ng=new THREE.BufferGeometry();ng.setAttribute('position',new THREE.BufferAttribute(np,3));ng.setAttribute('color',new THREE.BufferAttribute(nc,3));
+  sc.add(new THREE.Points(ng,new THREE.PointsMaterial({size:.45,vertexColors:true,transparent:true,opacity:.18,blending:THREE.AdditiveBlending,depthWrite:false})));
+  const mkm=(g,c)=>new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:c,wireframe:true,opacity:.12,transparent:true}));
+  const m1=mkm(new THREE.IcosahedronGeometry(.5,0),0x00f5ff);m1.position.set(-8,3,-5);sc.add(m1);
+  const m2=mkm(new THREE.OctahedronGeometry(.4,0),0xb400ff);m2.position.set(8,-2,-4);sc.add(m2);
+  const m3=mkm(new THREE.TetrahedronGeometry(.35,0),0xff2d78);m3.position.set(0,-5,-3);sc.add(m3);
+  window.addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();r.setSize(innerWidth,innerHeight);});
+  let t=0;(function loop(){requestAnimationFrame(loop);t+=.004;sc.children[0].rotation.y=t*.03;m1.rotation.x=t*.4;m1.rotation.y=t*.3;m2.rotation.x=t*.3;m2.rotation.z=t*.5;m3.rotation.y=t*.6;m3.rotation.x=t*.2;r.render(sc,cam);})();
 })();
 
-/* ═══════════════════════════════════════════
-   3-D CARD CAROUSEL
-═══════════════════════════════════════════ */
-const carousel = document.getElementById('carousel');
-const dotsEl   = document.getElementById('dots');
-const COUNT     = APPS.length;
-const RADIUS    = Math.max(320, COUNT * 44);
-let currentAngle = 0;
-let targetAngle  = 0;
-let isDragging   = false;
-let dragStartX   = 0;
-let dragStartAngle = 0;
-let activeCard   = -1;
-let animFrame;
-
-APPS.forEach((app, i) => {
-  const angle = (i / COUNT) * 360;
-  const rad   = angle * Math.PI / 180;
-  const glow  = app.colors[0];
-
-  /* card wrapper */
-  const card = document.createElement('div');
-  card.className = 'card';
-  card.style.setProperty('--glow', glow);
-  const place = `rotateY(${angle}deg) translateZ(${RADIUS}px)`;
-  card.style.setProperty('--place', place);
-  card.style.transform = place;
-
-  /* gradient for bg */
-  const gradCss = app.colors.length >= 3
-    ? `linear-gradient(135deg, ${app.colors[0]}, ${app.colors[1]}, ${app.colors[2]})`
-    : `linear-gradient(135deg, ${app.colors[0]}, ${app.colors[1]})`;
-
-  /* FRONT */
-  const front = document.createElement('div');
-  front.className = 'card-face card-front';
-  front.innerHTML = `
-    <div class="card-gradient" style="background:${gradCss}"></div>
-    <div class="card-glow-ring" style="background:${glow}"></div>
-    <div class="card-icon">${app.icon}</div>
-    <div class="card-name">${app.name}</div>
-    <div class="card-category">${app.category}</div>
-    <div class="card-tagline">${app.tagline}</div>
-    <div class="flip-hint">tap for info ›</div>
-  `;
-  front.addEventListener('click', () => flipCard(i));
-
-  /* BACK */
-  const back = document.createElement('div');
-  back.className = 'card-face card-back';
-  back.innerHTML = `
-    <div class="back-icon">${app.icon}</div>
-    <div class="back-name" style="color:${glow};text-shadow:0 0 16px ${glow}">${app.name}</div>
-    <div class="back-desc">${app.desc}</div>
-    <a class="launch-btn" href="${app.url}" target="_blank" rel="noopener"
-       style="background:${gradCss};color:#000;box-shadow:0 0 18px ${glow}44">
-      🚀 LAUNCH
-    </a>
-    <div class="back-close" onclick="flipCard(${i})">← BACK</div>
-  `;
-
-  card.appendChild(front);
-  card.appendChild(back);
-  carousel.appendChild(card);
-
-  /* dot */
-  const dot = document.createElement('div');
-  dot.className = 'dot';
-  dot.title = app.name;
-  dot.addEventListener('click', () => goTo(i));
-  dotsEl.appendChild(dot);
+/* BUILD CARDS */
+const grid=document.getElementById('grid');
+APPS.forEach((app,i)=>{
+  const g=app.colors.length>=3?`linear-gradient(135deg,${app.colors[0]},${app.colors[1]},${app.colors[2]})`:`linear-gradient(135deg,${app.colors[0]},${app.colors[1]})`;
+  const card=document.createElement('div');
+  card.className='app-card';card.style.setProperty('--glow',app.colors[0]);
+  card.innerHTML=`<div class="phone"><div class="phone-screen">${S[app.screen]}</div><div class="phone-overlay"><div class="overlay-tap">&#x1F446;</div></div></div><div class="card-label"><div class="card-name" style="color:${app.colors[0]};text-shadow:0 0 10px ${app.colors[0]}55">${app.name}</div><div class="card-cat">${app.category}</div></div>`;
+  card.addEventListener('mousemove',e=>{const rc=card.getBoundingClientRect(),x=(e.clientX-rc.left)/rc.width-.5,y=(e.clientY-rc.top)/rc.height-.5;card.style.transform=`translateY(-10px) rotateX(${-y*18}deg) rotateY(${x*18}deg) scale(1.04)`;});
+  card.addEventListener('mouseleave',()=>{card.style.transform='';});
+  card.addEventListener('click',()=>openModal(i));
+  grid.appendChild(card);
 });
 
-function flipCard(i) {
-  const cards = carousel.querySelectorAll('.card');
-  const card  = cards[i];
-  if (card.classList.contains('flipped')) {
-    card.classList.remove('flipped');
-    card.style.transform = card.style.getPropertyValue('--place') || `rotateY(${(i/COUNT)*360}deg) translateZ(${RADIUS}px)`;
-    activeCard = -1;
-  } else {
-    // un-flip any other
-    cards.forEach((c,j) => { if (j!==i && c.classList.contains('flipped')) { c.classList.remove('flipped'); } });
-    card.classList.add('flipped');
-    activeCard = i;
-    goTo(i);
-  }
+/* MODAL */
+const modal=document.getElementById('modal'),ms=document.getElementById('modal-screen'),mp=document.getElementById('modal-phone');
+function openModal(i){
+  const app=APPS[i];
+  const g=app.colors.length>=3?`linear-gradient(135deg,${app.colors[0]},${app.colors[1]},${app.colors[2]})`:`linear-gradient(135deg,${app.colors[0]},${app.colors[1]})`;
+  ms.innerHTML=S[app.screen];
+  document.getElementById('m-icon').textContent=app.icon;
+  const mn=document.getElementById('m-name');mn.textContent=app.name;mn.style.background=g;mn.style.webkitBackgroundClip='text';mn.style.webkitTextFillColor='transparent';mn.style.backgroundClip='text';
+  document.getElementById('m-cat').textContent=app.category;
+  document.getElementById('m-desc').textContent=app.desc;
+  const btn=document.getElementById('m-btn');btn.href=app.url;btn.style.background=g;
+  mp.style.boxShadow=`0 0 0 1px #4445,0 0 50px ${app.colors[0]}44,0 40px 100px rgba(0,0,0,.9)`;
+  modal.classList.add('open');document.body.style.overflow='hidden';
 }
+document.getElementById('modal-x').addEventListener('click',closeModal);
+modal.addEventListener('click',e=>{if(e.target===modal)closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+function closeModal(){modal.classList.remove('open');document.body.style.overflow='';}
 
-function goTo(i) {
-  const angle = -(i / COUNT) * 360;
-  targetAngle = angle;
-  carousel.classList.add('paused');
-  smoothRotate();
-}
-
-function smoothRotate() {
-  cancelAnimationFrame(animFrame);
-  const diff = targetAngle - currentAngle;
-  if (Math.abs(diff) < 0.05) {
-    currentAngle = targetAngle;
-    applyAngle(currentAngle);
-    updateDots(currentAngle);
-    return;
-  }
-  currentAngle += diff * 0.08;
-  applyAngle(currentAngle);
-  updateDots(currentAngle);
-  animFrame = requestAnimationFrame(smoothRotate);
-}
-
-function applyAngle(angle) {
-  carousel.style.transform = `rotateY(${angle}deg)`;
-}
-
-function updateDots(angle) {
-  const norm   = (((-angle) % 360) + 360) % 360;
-  const active = Math.round(norm / (360 / COUNT)) % COUNT;
-  document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === active));
-}
-
-/* ── DRAG ── */
-function onDown(e) {
-  isDragging  = true;
-  dragStartX  = e.touches ? e.touches[0].clientX : e.clientX;
-  dragStartAngle = currentAngle;
-  carousel.classList.add('paused');
-  cancelAnimationFrame(animFrame);
-}
-function onMove(e) {
-  if (!isDragging) return;
-  const x = e.touches ? e.touches[0].clientX : e.clientX;
-  const delta = (x - dragStartX) * 0.25;
-  currentAngle = dragStartAngle + delta;
-  applyAngle(currentAngle);
-  updateDots(currentAngle);
-}
-function onUp() {
-  if (!isDragging) return;
-  isDragging = false;
-  // snap to nearest
-  const norm   = (((-currentAngle) % 360) + 360) % 360;
-  const nearest = Math.round(norm / (360 / COUNT)) % COUNT;
-  targetAngle  = -(nearest / COUNT) * 360;
-  smoothRotate();
-}
-
-carousel.addEventListener('mousedown',  onDown);
-carousel.addEventListener('touchstart', onDown, { passive: true });
-window.addEventListener('mousemove',   onMove);
-window.addEventListener('touchmove',   onMove, { passive: true });
-window.addEventListener('mouseup',     onUp);
-window.addEventListener('touchend',    onUp);
-
-/* ── RESUME SPIN ON IDLE ── */
-let idleTimer;
-function resetIdle() {
-  clearTimeout(idleTimer);
-  idleTimer = setTimeout(() => {
-    if (activeCard === -1) carousel.classList.remove('paused');
-  }, 6000);
-}
-window.addEventListener('mousemove', resetIdle);
-window.addEventListener('touchmove', resetIdle);
-
-/* init dots */
-updateDots(0);
+/* GRID PARALLAX */
+let mx=0,my=0;
+window.addEventListener('mousemove',e=>{mx=(e.clientX/innerWidth-.5)*8;my=(e.clientY/innerHeight-.5)*8;});
+(function pl(){requestAnimationFrame(pl);grid.style.transform=`perspective(1400px) rotateX(${-my*.25}deg) rotateY(${mx*.25}deg)`;})();
 </script>
 </body>
 </html>
