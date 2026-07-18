@@ -13,7 +13,23 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:#fff;font-family
 #logo{font-size:clamp(28px,5vw,52px);font-weight:900;letter-spacing:.3em;background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:pulse 4s ease-in-out infinite}
 #tagline{margin-top:8px;font-size:clamp(10px,1.5vw,13px);letter-spacing:.4em;color:rgba(255,255,255,.3);text-transform:uppercase}
 @keyframes pulse{0%,100%{filter:drop-shadow(0 0 24px rgba(0,245,255,.5))}50%{filter:drop-shadow(0 0 40px rgba(180,0,255,.8))}}
-#grid{position:relative;z-index:5;display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:28px;padding:40px clamp(16px,5vw,80px) 100px;max-width:1400px;margin:0 auto}
+/* SECTION LABELS */
+.section-label{position:relative;z-index:5;max-width:1400px;margin:0 auto;padding:0 clamp(16px,5vw,80px);display:flex;align-items:center;gap:16px}
+.section-label span{font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:rgba(255,255,255,.3);white-space:nowrap}
+.section-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.08),transparent)}
+/* FEATURED STRIP */
+#featured{position:relative;z-index:5;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:32px;padding:20px clamp(16px,5vw,80px) 40px;max-width:1400px;margin:0 auto}
+#featured .app-card .phone{width:185px;height:336px;border-radius:30px}
+#featured .app-card .phone::before{width:54px;height:12px;top:10px}
+#featured .app-card .phone::after{width:52px;height:4px;bottom:7px}
+#featured .app-card .phone-screen{border-radius:28px}
+#featured .app-card .phone-overlay{border-radius:28px}
+#featured .app-card .card-name{font-size:15px}
+#featured .app-card .overlay-tap{font-size:38px}
+/* badge */
+.feat-badge{position:absolute;top:12px;left:12px;z-index:30;background:linear-gradient(135deg,var(--glow,#fff),rgba(255,255,255,.6));border-radius:6px;padding:2px 7px;font-size:7px;font-weight:800;letter-spacing:.15em;color:#000;text-transform:uppercase}
+/* ALL APPS GRID */
+#grid{position:relative;z-index:5;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:24px;padding:20px clamp(16px,5vw,80px) 100px;max-width:1400px;margin:0 auto}
 .app-card{cursor:pointer;display:flex;flex-direction:column;align-items:center;transition:transform .35s cubic-bezier(.4,0,.2,1);transform-style:preserve-3d;will-change:transform}
 .phone{width:155px;height:280px;border-radius:26px;background:#111;border:2px solid #2a2a2a;box-shadow:0 0 0 1px #3333,inset 0 0 0 2px #1a1a1a,0 24px 60px rgba(0,0,0,.9);position:relative;overflow:hidden;transition:box-shadow .35s}
 .app-card:hover .phone{box-shadow:0 0 0 1px var(--glow,#fff3),0 0 28px var(--glow,#fff2),0 32px 80px rgba(0,0,0,.95)}
@@ -52,6 +68,9 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:#fff;font-family
   <div id="logo">GYENINGCORP</div>
   <div id="tagline">25 Apps &mdash; Built Different</div>
 </div>
+<div class="section-label" style="margin-top:32px"><span>&#x2605; Spotlight</span></div>
+<div id="featured"></div>
+<div class="section-label" style="margin-top:8px"><span>All Apps</span></div>
 <div id="grid"></div>
 <div id="modal">
   <div id="modal-x">&#x2715;</div>
@@ -122,20 +141,20 @@ gigThen:'<div style="width:100%;height:100%;background:#0a0a00;font-family:syste
 
 const APPS=[
 {name:"Pittsburgh Kart",icon:"🏎️",tagline:"Street-view racing through the Burgh",desc:"First-person kart racer through real Pittsburgh streets. Dodge traffic on Google Street View roads.",category:"Web Game",colors:["#ff416c","#ff4b2b"],url:"https://gyeningcorp.github.io/SUNDRY/pittsburgh-kart/",screen:"pittsburghKart"},
-{name:"Go-Gig",icon:"🌿",tagline:"Outdoor services on demand",desc:"Customer-priced marketplace for lawn care, snow removal, pressure washing & more across Pittsburgh.",category:"Marketplace",colors:["#11998e","#38ef7d"],url:"https://go-gig.org",screen:"goGig"},
-{name:"Cows and Boys",icon:"🤠",tagline:"Herd cattle, dodge wolves",desc:"Wrangle your herd across the open trail. Lasso skills and quick reflexes separate legends from losers.",category:"iOS Game",colors:["#f7971e","#ffd200"],url:"https://gyeningcorp.github.io/cowboy-app/",screen:"cowsAndBoys"},
+{name:"Go-Gig",icon:"🌿",tagline:"Outdoor services on demand",desc:"Customer-priced marketplace for lawn care, snow removal, pressure washing & more across Pittsburgh.",category:"Marketplace",colors:["#11998e","#38ef7d"],url:"https://go-gig.org",screen:"goGig",featured:true},
+{name:"Cows and Boys",icon:"🤠",tagline:"Herd cattle, dodge wolves",desc:"Wrangle your herd across the open trail. Lasso skills and quick reflexes separate legends from losers.",category:"iOS Game",colors:["#f7971e","#ffd200"],url:"https://gyeningcorp.github.io/cowboy-app/",screen:"cowsAndBoys",featured:true},
 {name:"Cupid",icon:"💝",tagline:"Shared moments on your partner's screen",desc:"iOS couples app that puts your shared photos right on each other's home screen widget.",category:"iOS App",colors:["#ff6b6b","#ee0979"],url:"https://gyeningcorp.github.io/SUNDRY/cupid-app/",screen:"cupid"},
-{name:"Tokenizer",icon:"🧠",tagline:"See every AI token in real time",desc:"Browser extension that counts tokens, estimates cost, and analyzes your prompts across ChatGPT, Claude & Gemini.",category:"Browser Extension",colors:["#6a11cb","#2575fc"],url:"https://tokenroute.dev",screen:"tokenizer"},
-{name:"Packet Follower",icon:"🌐",tagline:"Watch packets travel the world in 3D",desc:"Real-time 3D network packet tracer. See your traffic hop across the globe as it happens.",category:"SaaS · Network Tool",colors:["#00c6ff","#0072ff"],url:"https://github.com/gyeningcorp/packet-follower",screen:"packetFollower"},
+{name:"Tokenizer",icon:"🧠",tagline:"See every AI token in real time",desc:"Browser extension that counts tokens, estimates cost, and analyzes your prompts across ChatGPT, Claude & Gemini.",category:"Browser Extension",colors:["#6a11cb","#2575fc"],url:"https://tokenroute.dev",screen:"tokenizer",featured:true},
+{name:"Packet Follower",icon:"🌐",tagline:"Watch packets travel the world in 3D",desc:"Real-time 3D network packet tracer. See your traffic hop across the globe as it happens.",category:"SaaS · Network Tool",colors:["#00c6ff","#0072ff"],url:"https://github.com/gyeningcorp/packet-follower",screen:"packetFollower",featured:true},
 {name:"Verses",icon:"📖",tagline:"Scripture, beautifully delivered",desc:"Daily Bible verse app for iOS with beautiful typography, themes, and personal verse collections.",category:"iOS App",colors:["#c9a227","#f5e6a3"],url:"https://gyeningcorp.github.io/verses-app/",screen:"verses"},
 {name:"CCNA Drill",icon:"📡",tagline:"Pass your CCNA, no excuses",desc:"Adaptive flashcard drill engine for Cisco CCNA exam prep. Targets your weak spots every session.",category:"Study Tool",colors:["#f46b45","#eea849"],url:"https://gyeningcorp.github.io/ccna-drill/",screen:"ccnaDrill"},
 {name:"CivicRead",icon:"📜",tagline:"Laws, explained like you're 10",desc:"AI that reads state legislation and returns plain-English, zero-bias summaries anyone can understand.",category:"Civic Tech",colors:["#6d98de","#c89b59"],url:"https://gyeningcorp.github.io/civicread/",screen:"civicRead"},
 {name:"Stemify",icon:"🎵",tagline:"Separate any song in seconds",desc:"Upload a track and isolate vocals, drums, bass and instrumentals instantly. Creator-grade stems, free.",category:"Audio Tool",colors:["#833ab4","#fd1d1d","#fcb045"],url:"https://gyeningcorp.github.io/stemify/",screen:"stemify"},
-{name:"Sticker Quest",icon:"🎮",tagline:"Collect. Trade. Stick it everywhere",desc:"Casual sticker collection game. Earn rare stickers, complete sets, and build your ultimate album.",category:"Game",colors:["#f953c6","#b91d73"],url:"https://gyeningcorp.github.io/sticker-quest/",screen:"stickerQuest"},
+{name:"Sticker Quest",icon:"🎮",tagline:"Collect. Trade. Stick it everywhere",desc:"Casual sticker collection game. Earn rare stickers, complete sets, and build your ultimate album.",category:"Game",colors:["#f953c6","#b91d73"],url:"https://gyeningcorp.github.io/sticker-quest/",screen:"stickerQuest",featured:true},
 {name:"Spoke",icon:"🎤",tagline:"Voice notes, elevated",desc:"iOS voice notes app with auto-transcription, smart tagging, and instant sharing. Think faster, type less.",category:"iOS App",colors:["#0b8793","#360033"],url:"https://gyeningcorp.github.io/spoke-app/",screen:"spoke"},
 {name:"KidCam Fun",icon:"📸",tagline:"Cameras kids can't resist",desc:"Safe, fun camera app for kids with silly filters, stamps, and parent-approved photo albums.",category:"iOS App",colors:["#db36a4","#f7ff00"],url:"https://gyeningcorp.github.io/kidcam-fun/",screen:"kidCam"},
 {name:"FarmRoot",icon:"🌱",tagline:"Grow local food networks",desc:"Connect local farmers with buyers in your community. Farm-to-table made dead simple.",category:"Web App",colors:["#134e5e","#71b280"],url:"https://gyeningcorp.github.io/farmroot/",screen:"farmRoot"},
-{name:"I Forgot Parking",icon:"🅿️",tagline:"Never lose your car again",desc:"One tap saves your parking spot with a pin, photo, and timer. Walks you right back.",category:"Web App",colors:["#2193b0","#6dd5ed"],url:"https://gyeningcorp.github.io/i-for-got-parking/",screen:"parking"},
+{name:"I Forgot Parking",icon:"🅿️",tagline:"Never lose your car again",desc:"One tap saves your parking spot with a pin, photo, and timer. Walks you right back.",category:"Web App",colors:["#2193b0","#6dd5ed"],url:"https://gyeningcorp.github.io/i-for-got-parking/",screen:"parking",featured:true},
 {name:"Budget App",icon:"💰",tagline:"Budgets that actually work",desc:"Simple envelope-style budgeting. Set limits, track spending, stay out of the red.",category:"Web App",colors:["#56ab2f","#a8e063"],url:"https://gyeningcorp.github.io/budget-app/",screen:"budget"},
 {name:"TapPOS",icon:"💳",tagline:"Point of sale in your pocket",desc:"Lightweight mobile POS for small vendors and market stalls. Accept cash, cards, and track inventory.",category:"Web App",colors:["#0f3443","#34e89e"],url:"https://gyeningcorp.github.io/tappos/",screen:"tapPOS"},
 {name:"ReplayCount",icon:"🔄",tagline:"How many times did you loop that?",desc:"Track how many times you've replayed a song, video, or episode. For the obsessed listeners.",category:"Web App",colors:["#3a1c71","#d76d77","#ffaf7b"],url:"https://github.com/gyeningcorp/replaycount",screen:"replayCount"},
@@ -171,16 +190,24 @@ const APPS=[
 })();
 
 /* BUILD CARDS */
+const featuredEl=document.getElementById('featured');
 const grid=document.getElementById('grid');
-APPS.forEach((app,i)=>{
+
+function makeCard(app,i,container){
   const g=app.colors.length>=3?`linear-gradient(135deg,${app.colors[0]},${app.colors[1]},${app.colors[2]})`:`linear-gradient(135deg,${app.colors[0]},${app.colors[1]})`;
   const card=document.createElement('div');
   card.className='app-card';card.style.setProperty('--glow',app.colors[0]);
-  card.innerHTML=`<div class="phone"><div class="phone-screen">${S[app.screen]}</div><div class="phone-overlay"><div class="overlay-tap">&#x1F446;</div></div></div><div class="card-label"><div class="card-name" style="color:${app.colors[0]};text-shadow:0 0 10px ${app.colors[0]}55">${app.name}</div><div class="card-cat">${app.category}</div></div>`;
+  const badge=app.featured?`<div class="feat-badge" style="background:${g}">&#x2605; Featured</div>`:'';
+  card.innerHTML=`<div class="phone">${badge}<div class="phone-screen">${S[app.screen]}</div><div class="phone-overlay"><div class="overlay-tap">&#x1F446;</div></div></div><div class="card-label"><div class="card-name" style="color:${app.colors[0]};text-shadow:0 0 10px ${app.colors[0]}55">${app.name}</div><div class="card-cat">${app.category}</div></div>`;
   card.addEventListener('mousemove',e=>{const rc=card.getBoundingClientRect(),x=(e.clientX-rc.left)/rc.width-.5,y=(e.clientY-rc.top)/rc.height-.5;card.style.transform=`translateY(-10px) rotateX(${-y*18}deg) rotateY(${x*18}deg) scale(1.04)`;});
   card.addEventListener('mouseleave',()=>{card.style.transform='';});
   card.addEventListener('click',()=>openModal(i));
-  grid.appendChild(card);
+  container.appendChild(card);
+}
+
+APPS.forEach((app,i)=>{
+  if(app.featured) makeCard(app,i,featuredEl);
+  else makeCard(app,i,grid);
 });
 
 /* MODAL */
@@ -202,10 +229,10 @@ modal.addEventListener('click',e=>{if(e.target===modal)closeModal();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 function closeModal(){modal.classList.remove('open');document.body.style.overflow='';}
 
-/* GRID PARALLAX */
+/* PARALLAX */
 let mx=0,my=0;
 window.addEventListener('mousemove',e=>{mx=(e.clientX/innerWidth-.5)*8;my=(e.clientY/innerHeight-.5)*8;});
-(function pl(){requestAnimationFrame(pl);grid.style.transform=`perspective(1400px) rotateX(${-my*.25}deg) rotateY(${mx*.25}deg)`;})();
+(function pl(){requestAnimationFrame(pl);const t=`perspective(1400px) rotateX(${-my*.25}deg) rotateY(${mx*.25}deg)`;featuredEl.style.transform=t;grid.style.transform=t;})();
 </script>
 </body>
 </html>
