@@ -153,6 +153,63 @@ html,body {
   background:rgba(240,160,60,.1); border:1px solid rgba(240,160,60,.28);
   border-radius:999px; padding:5px 14px; margin-bottom:18px; letter-spacing:1px;
 }
+
+/* LEADERBOARD */
+#leaderboard {
+  position:fixed; inset:0; z-index:15;
+  display:flex; flex-direction:column; align-items:center;
+  color:var(--cream);
+  background:rgba(8,4,2,.92);
+  backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+  padding:env(safe-area-inset-top,24px) 24px 32px;
+  overflow-y:auto;
+}
+#leaderboard h2 {
+  font-family:'Rye',serif; font-size:clamp(28px,8vw,48px);
+  letter-spacing:4px; color:var(--gold);
+  text-shadow:0 0 30px rgba(240,160,60,.4), 2px 3px 0 rgba(0,0,0,.6);
+  margin:24px 0 6px; flex-shrink:0;
+}
+#leaderboard .lb-sub {
+  font-size:10px; letter-spacing:4px; font-weight:600;
+  color:var(--amber); margin-bottom:22px; flex-shrink:0;
+}
+#lbList {
+  width:100%; max-width:440px; flex:1; min-height:0;
+}
+.lb-row {
+  display:flex; align-items:center; gap:12px;
+  padding:11px 16px; margin-bottom:8px;
+  background:rgba(245,232,200,.05);
+  border:1px solid rgba(240,192,96,.15);
+  border-radius:14px;
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+}
+.lb-row.lb-gold   { border-color:rgba(240,192,60,.55); background:rgba(240,192,60,.09); }
+.lb-row.lb-silver { border-color:rgba(200,200,220,.4);  background:rgba(200,200,220,.06); }
+.lb-row.lb-bronze { border-color:rgba(200,130,60,.4);   background:rgba(200,130,60,.06); }
+.lb-rank { font-family:'Rye',serif; font-size:18px; min-width:28px; text-align:center; }
+.lb-name { flex:1; font-weight:700; font-size:14px; letter-spacing:.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.lb-score { font-family:'Rye',serif; font-size:16px; color:var(--gold); }
+.lb-meta  { font-size:10px; color:rgba(245,232,200,.4); letter-spacing:.5px; }
+.lb-empty { text-align:center; color:rgba(245,232,200,.3); font-size:14px; padding:40px 0; letter-spacing:1px; }
+#lbClose {
+  font-family:'Inter',sans-serif; font-size:15px; font-weight:700;
+  letter-spacing:2px; padding:14px 36px; text-transform:uppercase;
+  background:rgba(245,232,200,.08); color:var(--cream);
+  border:1.5px solid rgba(245,232,200,.22); border-radius:999px;
+  cursor:pointer; margin-top:20px; flex-shrink:0;
+  transition:all .15s;
+}
+#lbClose:active { transform:scale(.97); }
+.btn-ghost {
+  font-family:'Inter',sans-serif; font-size:13px; font-weight:600;
+  letter-spacing:2px; padding:10px 24px; text-transform:uppercase;
+  background:rgba(245,232,200,.06); color:rgba(245,232,200,.7);
+  border:1px solid rgba(245,232,200,.18); border-radius:999px;
+  cursor:pointer; margin-top:10px; transition:all .15s;
+}
+.btn-ghost:active { transform:scale(.97); }
 </style>
 </head>
 <body>
@@ -187,6 +244,7 @@ html,body {
  Score = time survived × herd size. Lose every cow and it's over.
  </div>
  <button id="startBtn">RIDE OUT</button>
+ <button class="btn-ghost" id="menuLbBtn">🏆 LEADERBOARD</button>
 </div>
 
 <div class="overlay hidden" id="gameover">
@@ -197,7 +255,17 @@ html,body {
  <div class="card" id="goStats"></div>
  <div id="goLifetime" class="profile-bar" style="margin-bottom:16px;"></div>
  <div id="goUnlock" class="unlock-badge hidden" style="margin-bottom:16px;"></div>
+ <div id="goPB" class="profile-bar" style="margin-bottom:16px;color:var(--gold);"></div>
  <button id="retryBtn">RIDE AGAIN</button>
+ <button class="btn-ghost" id="goLbBtn" style="margin-top:12px;">🏆 LEADERBOARD</button>
+</div>
+
+<!-- LEADERBOARD PANEL -->
+<div id="leaderboard" class="hidden">
+ <h2>LEADERBOARD</h2>
+ <div class="lb-sub">TOP TRAIL RIDERS</div>
+ <div id="lbList"></div>
+ <button id="lbClose">BACK</button>
 </div>
 
 <script>
@@ -264,6 +332,68 @@ function updateProfileUI() {
     badge.classList.remove('hidden');
   }
 }
+
+// ============================== LEADERBOARD ==============================
+const LB_KEY = 'cb_leaderboard';
+const LB_MAX = 10;
+
+const leaderboard = {
+  get entries() {
+    try { return JSON.parse(localStorage.getItem(LB_KEY) || '[]'); } catch { return []; }
+  },
+  add(entry) {
+    const list = this.entries;
+    list.push(entry);
+    list.sort((a, b) => b.score - a.score);
+    list.splice(LB_MAX);
+    localStorage.setItem(LB_KEY, JSON.stringify(list));
+    return list.findIndex(e => e === entry || (e.score === entry.score && e.name === entry.name && e.date === entry.date));
+  },
+  personalBest(name) {
+    return this.entries.filter(e => e.name === name).sort((a,b) => b.score - a.score)[0] || null;
+  }
+};
+
+const MEDALS = ['🥇','🥈','🥉'];
+const RANK_CLASS = ['lb-gold','lb-silver','lb-bronze'];
+
+function renderLeaderboard() {
+  const list = leaderboard.entries;
+  const el = document.getElementById('lbList');
+  if (!list.length) {
+    el.innerHTML = '<div class="lb-empty">NO RIDES YET — HIT THE TRAIL!</div>';
+    return;
+  }
+  el.innerHTML = list.map((e, i) => `
+    <div class="lb-row ${RANK_CLASS[i] || ''}">
+      <span class="lb-rank">${MEDALS[i] || (i+1)}</span>
+      <span class="lb-name">${e.name.toUpperCase()}</span>
+      <div style="text-align:right">
+        <div class="lb-score">${Math.floor(e.score)}</div>
+        <div class="lb-meta">${e.time}s · ${e.date}</div>
+      </div>
+    </div>`).join('');
+}
+
+function showLeaderboard(returnPanel) {
+  renderLeaderboard();
+  document.getElementById('leaderboard').dataset.return = returnPanel || 'menu';
+  document.getElementById('leaderboard').classList.remove('hidden');
+}
+
+document.getElementById('lbClose').addEventListener('click', () => {
+  const ret = document.getElementById('leaderboard').dataset.return || 'menu';
+  document.getElementById('leaderboard').classList.add('hidden');
+  document.getElementById(ret).classList.remove('hidden');
+});
+document.getElementById('menuLbBtn').addEventListener('click', () => {
+  document.getElementById('menu').classList.add('hidden');
+  showLeaderboard('menu');
+});
+document.getElementById('goLbBtn').addEventListener('click', () => {
+  document.getElementById('gameover').classList.add('hidden');
+  showLeaderboard('gameover');
+});
 
 function initProfile() {
   if (!profile.name) {
@@ -947,6 +1077,15 @@ function endGame() {
  profile.addScore(runScore);
  const nowUnlocked = profile.unlocked;
 
+ // Save to leaderboard
+ const entry = {
+   name: profile.name || 'COWBOY',
+   score: runScore,
+   time: Math.floor(S.t),
+   date: new Date().toLocaleDateString('en-US', { month:'short', day:'numeric' }),
+ };
+ const rank = leaderboard.add(entry);
+
  document.getElementById('goScore').textContent = runScore;
  document.getElementById('goStats').innerHTML =
  `Time on the trail: <b>${Math.floor(S.t)}s</b><br>` +
@@ -955,6 +1094,19 @@ function endGame() {
 
  const lifeEl = document.getElementById('goLifetime');
  lifeEl.textContent = `${profile.name ? profile.name.toUpperCase() + ' · ' : ''}LIFETIME ${Math.floor(profile.lifetime)}`;
+
+ // Leaderboard rank callout
+ const pbEl = document.getElementById('goPB');
+ if (rank === 0) {
+   pbEl.textContent = '🥇 NEW #1 — ALL-TIME BEST!';
+ } else if (rank >= 0 && rank < 3) {
+   pbEl.textContent = `${MEDALS[rank]} RANK #${rank+1} ON THE BOARD!`;
+ } else if (rank >= 0) {
+   pbEl.textContent = `🏆 RANK #${rank+1} — YOU'RE ON THE BOARD!`;
+ } else {
+   const pb = leaderboard.personalBest(profile.name || 'COWBOY');
+   pbEl.textContent = pb ? `PERSONAL BEST: ${Math.floor(pb.score)}` : '';
+ }
 
  const unlockEl = document.getElementById('goUnlock');
  if (!wasUnlocked && nowUnlocked) {
