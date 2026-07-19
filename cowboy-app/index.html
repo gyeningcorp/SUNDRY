@@ -334,32 +334,42 @@ function updateProfileUI() {
 }
 
 // ============================== LEADERBOARD ==============================
-const LB_KEY = 'cb_leaderboard';
-const LB_MAX = 10;
-
-const leaderboard = {
-  get entries() {
-    try { return JSON.parse(localStorage.getItem(LB_KEY) || '[]'); } catch { return []; }
-  },
-  add(entry) {
-    const list = this.entries;
-    list.push(entry);
-    list.sort((a, b) => b.score - a.score);
-    list.splice(LB_MAX);
-    localStorage.setItem(LB_KEY, JSON.stringify(list));
-    return list.findIndex(e => e === entry || (e.score === entry.score && e.name === entry.name && e.date === entry.date));
-  },
-  personalBest(name) {
-    return this.entries.filter(e => e.name === name).sort((a,b) => b.score - a.score)[0] || null;
-  }
-};
-
+const API_BASE = 'https://api.go-gig.org/api';
 const MEDALS = ['🥇','🥈','🥉'];
 const RANK_CLASS = ['lb-gold','lb-silver','lb-bronze'];
 
-function renderLeaderboard() {
-  const list = leaderboard.entries;
+const leaderboard = {
+  _cache: null,
+  async fetchEntries() {
+    try {
+      const res = await fetch(`${API_BASE}/games/leaderboard?game=cows-and-boys&limit=10`);
+      const json = await res.json();
+      this._cache = json.success ? json.data : [];
+    } catch { this._cache = this._cache || []; }
+    return this._cache || [];
+  },
+  async add(entry) {
+    try {
+      const res = await fetch(`${API_BASE}/games/leaderboard`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ game: 'cows-and-boys', name: entry.name, score: entry.score }),
+      });
+      const json = await res.json();
+      this._cache = null;
+      return json.success ? json.data.rank - 1 : -1;
+    } catch { return -1; }
+  },
+  async personalBest(name) {
+    const list = await this.fetchEntries();
+    return list.filter(e => e.name.toUpperCase() === name.toUpperCase()).sort((a,b) => b.score - a.score)[0] || null;
+  }
+};
+
+async function renderLeaderboard() {
   const el = document.getElementById('lbList');
+  el.innerHTML = '<div class="lb-empty">LOADING SCORES...</div>';
+  const list = await leaderboard.fetchEntries();
   if (!list.length) {
     el.innerHTML = '<div class="lb-empty">NO RIDES YET — HIT THE TRAIL!</div>';
     return;
@@ -370,15 +380,15 @@ function renderLeaderboard() {
       <span class="lb-name">${e.name.toUpperCase()}</span>
       <div style="text-align:right">
         <div class="lb-score">${Math.floor(e.score)}</div>
-        <div class="lb-meta">${e.time}s · ${e.date}</div>
+        <div class="lb-meta">${new Date(e.createdAt).toLocaleDateString('en-US', {month:'short',day:'numeric'})}</div>
       </div>
     </div>`).join('');
 }
 
 function showLeaderboard(returnPanel) {
-  renderLeaderboard();
   document.getElementById('leaderboard').dataset.return = returnPanel || 'menu';
   document.getElementById('leaderboard').classList.remove('hidden');
+  renderLeaderboard();
 }
 
 document.getElementById('lbClose').addEventListener('click', () => {
@@ -1077,15 +1087,6 @@ function endGame() {
  profile.addScore(runScore);
  const nowUnlocked = profile.unlocked;
 
- // Save to leaderboard
- const entry = {
-   name: profile.name || 'COWBOY',
-   score: runScore,
-   time: Math.floor(S.t),
-   date: new Date().toLocaleDateString('en-US', { month:'short', day:'numeric' }),
- };
- const rank = leaderboard.add(entry);
-
  document.getElementById('goScore').textContent = runScore;
  document.getElementById('goStats').innerHTML =
  `Time on the trail: <b>${Math.floor(S.t)}s</b><br>` +
@@ -1095,18 +1096,24 @@ function endGame() {
  const lifeEl = document.getElementById('goLifetime');
  lifeEl.textContent = `${profile.name ? profile.name.toUpperCase() + ' · ' : ''}LIFETIME ${Math.floor(profile.lifetime)}`;
 
- // Leaderboard rank callout
  const pbEl = document.getElementById('goPB');
- if (rank === 0) {
-   pbEl.textContent = '🥇 NEW #1 — ALL-TIME BEST!';
- } else if (rank >= 0 && rank < 3) {
-   pbEl.textContent = `${MEDALS[rank]} RANK #${rank+1} ON THE BOARD!`;
- } else if (rank >= 0) {
-   pbEl.textContent = `🏆 RANK #${rank+1} — YOU'RE ON THE BOARD!`;
- } else {
-   const pb = leaderboard.personalBest(profile.name || 'COWBOY');
-   pbEl.textContent = pb ? `PERSONAL BEST: ${Math.floor(pb.score)}` : '';
- }
+ pbEl.textContent = 'SAVING SCORE...';
+
+ // Save to global leaderboard async
+ const entry = { name: profile.name || 'COWBOY', score: runScore };
+ leaderboard.add(entry).then(rank => {
+   if (rank === 0) {
+     pbEl.textContent = '🥇 NEW #1 — ALL-TIME BEST!';
+   } else if (rank > 0 && rank < 3) {
+     pbEl.textContent = `${MEDALS[rank]} RANK #${rank+1} ON THE BOARD!`;
+   } else if (rank >= 0) {
+     pbEl.textContent = `🏆 RANK #${rank+1} — YOU'RE ON THE BOARD!`;
+   } else {
+     leaderboard.personalBest(profile.name || 'COWBOY').then(pb => {
+       pbEl.textContent = pb ? `PERSONAL BEST: ${Math.floor(pb.score)}` : '';
+     });
+   }
+ });
 
  const unlockEl = document.getElementById('goUnlock');
  if (!wasUnlocked && nowUnlocked) {
