@@ -1,0 +1,47 @@
+name: Cowboy
+options:
+  bundleIdPrefix: com.innercircle
+  deploymentTarget:
+    iOS: "16.0"
+  xcodeVersion: "15.0"
+  swift: "5.9"
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: "4LZJ7U5FHS"
+    ENABLE_BITCODE: NO
+    ONLY_ACTIVE_ARCH: NO
+
+targets:
+  Cowboy:
+    type: application
+    platform: iOS
+    sources:
+      - path: Cowboy
+        excludes:
+          - "game.html"
+    resources:
+      - path: Cowboy/game.html
+      - path: Cowboy/Assets.xcassets
+    info:
+      path: Cowboy/Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.innercircle.cowboy
+        INFOPLIST_FILE: Cowboy/Info.plist
+        ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: YES
+        TARGETED_DEVICE_FAMILY: "1"
+
+schemes:
+  Cowboy:
+    build:
+      targets:
+        Cowboy: all
+    run:
+      config: Debug
+    archive:
+      config: Release

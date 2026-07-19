@@ -1,0 +1,107 @@
+name: Build & Submit to TestFlight
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select latest Xcode
+        run: |
+          LATEST=$(ls /Applications | grep -E '^Xcode_[0-9]+(\.[0-9]+)*\.app$' | sort -V | tail -1)
+          if [ -z "$LATEST" ]; then LATEST="Xcode.app"; fi
+          sudo xcode-select -s "/Applications/$LATEST"
+          xcodebuild -version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Write ASC API Key
+        run: |
+          mkdir -p ~/.private_keys
+          printf '%s' "$ASC_PRIVATE_KEY" > ~/.private_keys/AuthKey_${ASC_KEY_ID}.p8
+          chmod 600 ~/.private_keys/AuthKey_${ASC_KEY_ID}.p8
+        env:
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup code signing
+        run: node setup-signing.js
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_PATH: /Users/runner/.private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8
+          TEAM_ID: 4LZJ7U5FHS
+
+      - name: Set build number
+        run: |
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $GITHUB_RUN_NUMBER" Cowboy/Info.plist
+
+      - name: Archive
+        run: |
+          xcodebuild archive \
+            -scheme Cowboy \
+            -configuration Release \
+            -destination "generic/platform=iOS" \
+            -archivePath $RUNNER_TEMP/Cowboy.xcarchive \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="iPhone Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="$APP_PROFILE_NAME" \
+            DEVELOPMENT_TEAM=4LZJ7U5FHS \
+            CURRENT_PROJECT_VERSION=$GITHUB_RUN_NUMBER \
+            | xcpretty || true
+
+      - name: Export IPA
+        run: |
+          cat > $RUNNER_TEMP/ExportOptions.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>4LZJ7U5FHS</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.innercircle.cowboy</key><string>$APP_PROFILE_UUID</string>
+            </dict>
+          </dict></plist>
+          EOF
+          xcodebuild -exportArchive \
+            -archivePath $RUNNER_TEMP/Cowboy.xcarchive \
+            -exportPath $RUNNER_TEMP/export \
+            -exportOptionsPlist $RUNNER_TEMP/ExportOptions.plist
+
+      - name: Upload to TestFlight
+        run: |
+          IPA=$(find "$RUNNER_TEMP/export" -name "*.ipa" | head -1)
+          echo "Uploading: $IPA"
+          OUTPUT=$(xcrun altool --upload-app \
+            --file "$IPA" \
+            --type ios \
+            --apiKey ${{ secrets.ASC_KEY_ID }} \
+            --apiIssuer ${{ secrets.ASC_ISSUER_ID }} \
+            --private-key @path:/Users/runner/.private_keys/AuthKey_${{ secrets.ASC_KEY_ID }}.p8 2>&1)
+          echo "$OUTPUT"
+          if echo "$OUTPUT" | grep -qi "UPLOAD FAILED\|error:"; then
+            echo "::error::altool upload failed"
+            exit 1
+          fi
+
+      - name: Done
+        if: success()
+        run: echo "✅ Cowboy build $GITHUB_RUN_NUMBER uploaded to TestFlight!"

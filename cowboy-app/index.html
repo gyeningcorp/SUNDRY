@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>COWS AND BOYS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rye&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --amber: #e8923a;
+  --gold:  #f0c060;
+  --dark:  #0c0806;
+  --cream: #f5e8c8;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body {
+  height:100%; overflow:hidden; background:#0c0806;
+  touch-action:none; overscroll-behavior:none;
+  font-family:'Inter', system-ui, -apple-system, sans-serif;
+}
+#game { display:block; width:100vw; height:100vh; }
+
+/* HUD */
+.hud {
+  position:fixed; top:env(safe-area-inset-top,0); left:0; right:0;
+  display:flex; justify-content:space-between;
+  padding:12px 16px; pointer-events:none; z-index:5;
+  color:var(--cream); font-weight:700; font-size:15px; letter-spacing:.5px;
+}
+.hud .pill {
+  background:rgba(12,8,6,.58);
+  border:1px solid rgba(240,192,96,.3);
+  padding:6px 14px; border-radius:999px;
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  box-shadow:0 2px 12px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.07);
+}
+
+/* LASSO button */
+#lassoBtn {
+  position:fixed; bottom:calc(28px + env(safe-area-inset-bottom,0)); right:24px;
+  z-index:6; width:80px; height:80px; border-radius:50%;
+  border:2px solid rgba(245,232,200,.55);
+  background:linear-gradient(145deg,#d47030,#8a3412);
+  color:#fff; font-family:'Inter',sans-serif; font-weight:700; font-size:12px;
+  letter-spacing:.5px; display:none;
+  box-shadow:0 4px 20px rgba(200,100,40,.5), 0 2px 0 rgba(0,0,0,.4);
+  transition:transform .1s, box-shadow .1s;
+}
+#lassoBtn:active { transform:scale(.94) translateY(2px); box-shadow:0 2px 8px rgba(200,100,40,.35); }
+
+/* OVERLAYS */
+.overlay {
+  position:fixed; inset:0; z-index:10;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; color:var(--cream);
+  background:rgba(8,4,2,.8);
+  backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
+  padding:28px;
+}
+.overlay h1 {
+  font-family:'Rye',serif;
+  font-size:clamp(42px,12vw,86px); letter-spacing:4px; line-height:1.1;
+  color:var(--gold);
+  text-shadow:0 0 40px rgba(240,160,60,.45), 3px 4px 0 rgba(0,0,0,.65);
+  margin-bottom:6px;
+}
+.overlay .sub {
+  font-size:11px; letter-spacing:4px; font-weight:600;
+  color:var(--amber); margin-bottom:28px; text-transform:uppercase;
+}
+.overlay .card {
+  background:rgba(245,232,200,.06);
+  border:1px solid rgba(240,192,96,.2);
+  border-radius:20px; padding:20px 24px;
+  max-width:420px; font-size:14px; line-height:1.75;
+  margin-bottom:28px;
+  backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+}
+.overlay .card b { color:var(--gold); }
+.overlay button {
+  font-family:'Inter',sans-serif; font-size:16px; font-weight:700;
+  letter-spacing:2px; padding:16px 40px; text-transform:uppercase;
+  background:linear-gradient(145deg,#d47838,#a84820);
+  color:#fff; border:1.5px solid rgba(245,232,200,.38);
+  border-radius:999px; cursor:pointer;
+  box-shadow:0 6px 24px rgba(200,96,40,.45), inset 0 1px 0 rgba(255,255,255,.14);
+  transition:all .15s;
+}
+.overlay button:active { transform:scale(.97) translateY(2px); box-shadow:0 2px 8px rgba(200,96,40,.3); }
+
+.big {
+  font-family:'Rye',serif;
+  font-size:clamp(36px,10vw,66px); color:var(--gold);
+  margin:10px 0 2px;
+  text-shadow:0 0 30px rgba(240,160,60,.4);
+}
+.hidden { display:none !important; }
+
+#toast {
+  position:fixed; left:50%; top:15%;
+  transform:translateX(-50%); z-index:7; pointer-events:none;
+  color:var(--gold); font-weight:700; font-size:16px; letter-spacing:2px;
+  text-shadow:0 0 12px rgba(240,180,60,.8);
+  opacity:0; transition:opacity .25s;
+}
+
+/* NAME ENTRY */
+#nameEntry {
+  position:fixed; inset:0; z-index:20;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background:rgba(8,4,2,.96);
+  backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+  padding:28px; text-align:center;
+}
+#nameEntry h1 {
+  font-family:'Rye',serif;
+  font-size:clamp(36px,10vw,72px); letter-spacing:4px; line-height:1.1;
+  color:var(--gold);
+  text-shadow:0 0 40px rgba(240,160,60,.45), 3px 4px 0 rgba(0,0,0,.65);
+  margin-bottom:8px;
+}
+#nameEntry .sub {
+  font-size:11px; letter-spacing:4px; font-weight:600;
+  color:var(--amber); margin-bottom:32px;
+}
+#nameEntry input {
+  font-family:'Inter',sans-serif; font-size:20px; text-align:center;
+  letter-spacing:3px; color:var(--cream);
+  background:rgba(245,232,200,.07);
+  border:1.5px solid rgba(240,192,96,.28);
+  border-radius:16px; padding:14px 24px;
+  width:min(300px,80vw); margin-bottom:20px; outline:none;
+  transition:border-color .2s;
+}
+#nameEntry input:focus { border-color:rgba(240,192,96,.65); }
+#nameEntry input::placeholder { color:rgba(245,232,200,.22); }
+#nameEntry button {
+  font-family:'Inter',sans-serif; font-size:16px; font-weight:700;
+  letter-spacing:2px; padding:16px 40px; text-transform:uppercase;
+  background:linear-gradient(145deg,#d47838,#a84820);
+  color:#fff; border:1.5px solid rgba(245,232,200,.38); border-radius:999px;
+  cursor:pointer;
+  box-shadow:0 6px 24px rgba(200,96,40,.45), inset 0 1px 0 rgba(255,255,255,.14);
+  transition:all .15s;
+}
+#nameEntry button:active { transform:scale(.97) translateY(2px); }
+
+.profile-bar { font-size:11px; letter-spacing:2px; color:rgba(245,232,200,.42); margin-bottom:10px; font-weight:600; }
+.unlock-badge {
+  font-size:12px; color:var(--gold);
+  background:rgba(240,160,60,.1); border:1px solid rgba(240,160,60,.28);
+  border-radius:999px; padding:5px 14px; margin-bottom:18px; letter-spacing:1px;
+}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="nameEntry" class="hidden">
+ <h1>COWS &amp;<br>BOYS</h1>
+ <div class="sub">WHAT'S YOUR NAME, COWBOY?</div>
+ <input id="nameInput" type="text" maxlength="16" placeholder="YOUR NAME" autocomplete="off" autocorrect="off" spellcheck="false">
+ <button id="nameSubmitBtn">HIT THE TRAIL</button>
+</div>
+
+<div class="hud">
+ <span class="pill" id="hudHerd">🐄 0</span>
+ <span class="pill" id="hudScore">0</span>
+ <span class="pill" id="hudFx"></span>
+</div>
+<button id="lassoBtn">LASSO</button>
+<div id="toast"></div>
+
+<div class="overlay" id="menu">
+ <h1>COWS &amp;<br>BOYS</h1>
+ <div class="sub">KEEP THE HERD MOVIN'</div>
+ <div id="profileBar" class="profile-bar"></div>
+ <div id="unlockBadge" class="unlock-badge hidden"></div>
+ <div class="card">
+ The trail scrolls up — any cow that falls off the bottom is <b>lost</b>.<br><br>
+ <b>Move:</b> touch &amp; drag.<br>
+ <b>Herd:</b> ride close — cows shy away from you. Push 'em north.<br>
+ <b>Watch for:</b> rivers &amp; fences (find the gap), canyons, wolves, and tall grass where cows stop to graze.<br>
+ <b>Grab:</b> 🧊 sugar = speed boost · 🪢 lasso = yank your worst straggler.<br><br>
+ Score = time survived × herd size. Lose every cow and it's over.
+ </div>
+ <button id="startBtn">RIDE OUT</button>
+</div>
+
+<div class="overlay hidden" id="gameover">
+ <h1 style="font-size:clamp(32px,9vw,60px)">TRAIL'S END</h1>
+ <div class="sub" id="goReason">THE HERD IS GONE</div>
+ <div class="big" id="goScore">0</div>
+ <div class="sub">SCORE</div>
+ <div class="card" id="goStats"></div>
+ <div id="goLifetime" class="profile-bar" style="margin-bottom:16px;"></div>
+ <div id="goUnlock" class="unlock-badge hidden" style="margin-bottom:16px;"></div>
+ <button id="retryBtn">RIDE AGAIN</button>
+</div>
+
+<script>
+"use strict";
+// roundRect polyfill for older browsers
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
+    r = Math.min(r, w/2, h/2);
+    this.moveTo(x+r,y); this.lineTo(x+w-r,y);
+    this.quadraticCurveTo(x+w,y,x+w,y+r); this.lineTo(x+w,y+h-r);
+    this.quadraticCurveTo(x+w,y+h,x+w-r,y+h); this.lineTo(x+r,y+h);
+    this.quadraticCurveTo(x,y+h,x,y+h-r); this.lineTo(x,y+r);
+    this.quadraticCurveTo(x,y,x+r,y); this.closePath(); return this;
+  };
+}
+
+// ============================== SETUP ==============================
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+let W = 0, H = 0, DPR = 1;
+function resize() {
+ DPR = Math.min(window.devicePixelRatio || 1, 2);
+ W = window.innerWidth; H = window.innerHeight;
+ canvas.width = W * DPR; canvas.height = H * DPR;
+ canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+ ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+window.addEventListener('resize', resize); resize();
+
+const hudHerd = document.getElementById('hudHerd');
+const hudScore = document.getElementById('hudScore');
+const hudFx = document.getElementById('hudFx');
+const lassoBtn = document.getElementById('lassoBtn');
+const toastEl = document.getElementById('toast');
+
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const dist2 = (ax, ay, bx, by) => { const dx = ax - bx, dy = ay - by; return dx*dx + dy*dy; };
+
+// ============================== PROFILE ==============================
+const UNLOCK_SCORE = 300;
+const profile = {
+  get name() { return localStorage.getItem('cb_name') || ''; },
+  set name(v) { localStorage.setItem('cb_name', v); },
+  get lifetime() { return parseFloat(localStorage.getItem('cb_lifetime') || '0'); },
+  addScore(s) { localStorage.setItem('cb_lifetime', (this.lifetime + s).toFixed(1)); },
+  get unlocked() { return this.lifetime >= UNLOCK_SCORE; },
+  get startingLassos() { return this.unlocked ? 3 : 2; },
+  get startingCows() { return this.unlocked ? 9 : 8; },
+};
+
+function updateProfileUI() {
+  const bar = document.getElementById('profileBar');
+  const badge = document.getElementById('unlockBadge');
+  if (profile.name) {
+    bar.textContent = `${profile.name.toUpperCase()} · LIFETIME ${Math.floor(profile.lifetime)}`;
+  }
+  if (profile.unlocked) {
+    badge.textContent = '🏅 TRAIL LEGEND — +1 LASSO · BONUS COW';
+    badge.classList.remove('hidden');
+  } else {
+    const needed = Math.ceil(UNLOCK_SCORE - profile.lifetime);
+    badge.textContent = `${needed} MORE TO UNLOCK TRAIL LEGEND`;
+    badge.classList.remove('hidden');
+  }
+}
+
+function initProfile() {
+  if (!profile.name) {
+    document.getElementById('nameEntry').classList.remove('hidden');
+    document.getElementById('menu').classList.add('hidden');
+    const input = document.getElementById('nameInput');
+    const submit = document.getElementById('nameSubmitBtn');
+    const doSubmit = () => {
+      const n = input.value.trim();
+      if (!n) { input.focus(); return; }
+      profile.name = n;
+      document.getElementById('nameEntry').classList.add('hidden');
+      document.getElementById('menu').classList.remove('hidden');
+      updateProfileUI();
+    };
+    submit.addEventListener('click', doSubmit);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') doSubmit(); });
+    input.focus();
+  } else {
+    updateProfileUI();
+  }
+}
+
+// ============================== STATE ==============================
+const S = {
+ running: false, t: 0, score: 0,
+ camY: 0,
+ scrollSpeed: 26,
+ player: null, cows: [], wolves: [], features: [], pickups: [], parts: [],
+ lassoCharges: 0, boostT: 0, nextFeatureY: 0,
+ cowsLost: 0, wolvesRepelled: 0, keys: {},
+ touch: { active: false, x: 0, y: 0 },
+};
+
+// ============================== INPUT ==============================
+window.addEventListener('keydown', e => {
+ S.keys[e.key.toLowerCase()] = true;
+ if (e.key === ' ') { e.preventDefault(); fireLasso(); }
+});
+window.addEventListener('keyup', e => S.keys[e.key.toLowerCase()] = false);
+
+canvas.addEventListener('pointerdown', e => { S.touch.active = true; S.touch.x = e.clientX; S.touch.y = e.clientY; });
+canvas.addEventListener('pointermove', e => { if (S.touch.active) { S.touch.x = e.clientX; S.touch.y = e.clientY; } });
+window.addEventListener('pointerup', () => S.touch.active = false);
+window.addEventListener('pointercancel', () => S.touch.active = false);
+lassoBtn.addEventListener('pointerdown', e => { e.stopPropagation(); fireLasso(); });
+
+// ============================== ENTITIES ==============================
+function makePlayer() {
+ return { x: W/2, y: 0, vx: 0, vy: 0, speed: 250, r: 14, face: 1, gallop: 0 };
+}
+function makeCow(x, y) {
+ return { x, y, vx: 0, vy: 0, r: 12, eating: 0, panic: 0,
+ tint: Math.random() < .25 ? '#7a5236' : (Math.random() < .3 ? '#3d2e24' : '#c9b8a0'),
+ bob: rand(0, 6.28) };
+}
+function makeWolf(side, y) {
+ return { x: side < 0 ? -30 : W + 30, y, vx: 0, vy: 0, r: 12,
+ state: 'hunt', latch: 0, target: null, fleeT: 0 };
+}
+
+function pushFeature(type, yTop) {
+ const f = { type, yTop };
+ if (type === 'river' || type === 'fence') {
+ f.h = type === 'river' ? 64 : 14;
+ f.gapX = rand(W * .18, W * .82);
+ f.gapW = type === 'river' ? rand(70, 110) : rand(80, 130);
+ } else if (type === 'canyon') {
+ f.h = rand(320, 480);
+ f.wallW = rand(W * .2, W * .3);
+ } else if (type === 'grass') {
+ f.h = 0; f.cx = rand(W * .2, W * .8); f.cy = yTop; f.rad = rand(60, 95);
+ }
+ S.features.push(f);
+}
+
+function generateAhead() {
+ while (S.nextFeatureY > S.camY - H * 1.5) {
+ const roll = Math.random();
+ let type = roll < .26 ? 'river' : roll < .5 ? 'fence' : roll < .68 ? 'canyon' : 'grass';
+ if (S.t < 15) type = Math.random() < .5 ? 'grass' : 'fence';
+ pushFeature(type, S.nextFeatureY);
+ S.nextFeatureY -= rand(H * .55, H * .95);
+ if (Math.random() < .55) {
+ S.pickups.push({ kind: Math.random() < .5 ? 'sugar' : 'lasso',
+ x: rand(40, W - 40), y: S.nextFeatureY + rand(60, 200), r: 13, bob: rand(0, 6.28) });
+ }
+ }
+ S.features = S.features.filter(f => f.yTop < S.camY + H * 2);
+ S.pickups = S.pickups.filter(p => p.y < S.camY + H + 60);
+}
+
+// ============================== FEATURE PHYSICS ==============================
+function collideFeatures(e, isPlayer, dt) {
+ for (const f of S.features) {
+ if (f.type === 'river' || f.type === 'fence') {
+ const top = f.yTop, bot = f.yTop + f.h;
+ const inGap = e.x > f.gapX - f.gapW/2 + e.r*0.5 && e.x < f.gapX + f.gapW/2 - e.r*0.5;
+ if (isPlayer && f.type === 'river') continue;
+ if (!inGap && e.y + e.r > top && e.y - e.r < bot) {
+ if (e.y < (top + bot) / 2) { e.y = top - e.r; if (e.vy > 0) e.vy = 0; }
+ else { e.y = bot + e.r; if (e.vy < 0) e.vy = 0; }
+ if (!isPlayer) e.vx += (f.gapX - e.x) * 0.28 * dt;
+ }
+ } else if (f.type === 'canyon') {
+ if (e.y > f.yTop - e.r && e.y < f.yTop + f.h + e.r) {
+ const L = f.wallW, R = W - f.wallW;
+ if (e.x - e.r < L) { e.x = L + e.r; if (e.vx < 0) e.vx = 0; }
+ if (e.x + e.r > R) { e.x = R - e.r; if (e.vx > 0) e.vx = 0; }
+ }
+ }
+ }
+}
+
+// ============================== LASSO ==============================
+let lassoAnim = null;
+function fireLasso() {
+ if (!S.running || S.lassoCharges <= 0 || !S.cows.length) return;
+ let worst = S.cows[0];
+ for (const c of S.cows) if (c.y > worst.y) worst = c;
+ S.lassoCharges--;
+ lassoAnim = { t: 0, cow: worst };
+ worst.x = S.player.x + rand(-20, 20);
+ worst.y = S.player.y - 30;
+ worst.vx = 0; worst.vy = -40;
+ toast('YANKED ONE BACK!');
+ updateLassoBtn();
+}
+function updateLassoBtn() {
+ lassoBtn.style.display = S.lassoCharges > 0 ? 'block' : 'none';
+ lassoBtn.textContent = 'LASSO ×' + S.lassoCharges;
+}
+function toast(msg) {
+ toastEl.textContent = msg; toastEl.style.opacity = 1;
+ clearTimeout(toast._t); toast._t = setTimeout(() => toastEl.style.opacity = 0, 1200);
+}
+
+// ============================== UPDATE ==============================
+function update(dt) {
+ S.t += dt;
+ S.scrollSpeed = 26 + Math.min(44, S.t * 0.55);
+ S.camY -= S.scrollSpeed * dt;
+ generateAhead();
+
+ const P = S.player;
+ const screenTop = S.camY, screenBot = S.camY + H;
+
+ let ix = 0, iy = 0;
+ if (S.keys['a'] || S.keys['arrowleft']) ix -= 1;
+ if (S.keys['d'] || S.keys['arrowright']) ix += 1;
+ if (S.keys['w'] || S.keys['arrowup']) iy -= 1;
+ if (S.keys['s'] || S.keys['arrowdown']) iy += 1;
+ if (S.touch.active) {
+ const tx = S.touch.x, ty = S.touch.y + S.camY;
+ const dx = tx - P.x, dy = ty - P.y, d = Math.hypot(dx, dy);
+ if (d > 14) { ix = dx / d; iy = dy / d; }
+ }
+ const mag = Math.hypot(ix, iy) || 1;
+ const spd = P.speed * (S.boostT > 0 ? 1.55 : 1);
+ P.vx += (ix/mag * spd - P.vx) * Math.min(1, dt * 10);
+ P.vy += (iy/mag * spd - P.vy) * Math.min(1, dt * 10);
+ P.x += P.vx * dt; P.y += P.vy * dt;
+ if (ix) P.face = ix > 0 ? 1 : -1;
+ P.gallop += Math.hypot(P.vx, P.vy) * dt * 0.06;
+ collideFeatures(P, true, dt);
+ P.x = clamp(P.x, P.r, W - P.r);
+ P.y = clamp(P.y, screenTop + P.r + 4, screenBot - P.r - 4);
+ if (S.boostT > 0) { S.boostT -= dt;
+ if (Math.random() < .5) S.parts.push({ x:P.x, y:P.y+10, vx:rand(-20,20), vy:rand(10,40), life:.5, col:'#ffe9b0' }); }
+
+ for (let i = S.pickups.length - 1; i >= 0; i--) {
+ const p = S.pickups[i];
+ if (dist2(p.x, p.y, P.x, P.y) < (p.r + P.r) ** 2) {
+ if (p.kind === 'sugar') { S.boostT = 5; toast('SUGAR RUSH!'); }
+ else { S.lassoCharges++; toast('GOT A LASSO'); updateLassoBtn(); }
+ S.pickups.splice(i, 1);
+ }
+ }
+
+ const wolfEvery = Math.max(6, 14 - S.t * 0.08);
+ if (S.t > 20 && (S._wolfT = (S._wolfT || 0) + dt) > wolfEvery) {
+ S._wolfT = 0;
+ S.wolves.push(makeWolf(Math.random() < .5 ? -1 : 1, S.camY + rand(H * .2, H * .7)));
+ }
+
+ for (let i = S.wolves.length - 1; i >= 0; i--) {
+ const w = S.wolves[i];
+ const dP2 = dist2(w.x, w.y, P.x, P.y);
+ if (w.state !== 'flee' && dP2 < 120 * 120) {
+ w.state = 'flee'; w.fleeT = 2.5; w.latch = 0; S.wolvesRepelled++;
+ }
+ if (w.state === 'flee') {
+ const d = Math.sqrt(dP2) || 1;
+ w.vx += ((w.x - P.x)/d * 320 - w.vx) * dt * 6;
+ w.vy += ((w.y - P.y)/d * 320 - w.vy) * dt * 6;
+ w.fleeT -= dt;
+ if (w.fleeT <= 0 || w.x < -60 || w.x > W + 60) { S.wolves.splice(i, 1); continue; }
+ } else {
+ let best = null, bd = 1e18;
+ for (const c of S.cows) { const d = dist2(w.x, w.y, c.x, c.y); if (d < bd) { bd = d; best = c; } }
+ if (!best) { w.vy -= 40 * dt; }
+ else {
+ const d = Math.sqrt(bd) || 1;
+ const sp = 150;
+ w.vx += ((best.x - w.x)/d * sp - w.vx) * dt * 4;
+ w.vy += ((best.y - w.y)/d * sp - w.vy) * dt * 4;
+ if (d < w.r + best.r + 4) {
+ w.latch += dt; best.panic = 1;
+ for (const c of S.cows) {
+ const cd = dist2(c.x, c.y, w.x, w.y);
+ if (cd < 90 * 90) { const dd = Math.sqrt(cd) || 1;
+ c.vx += (c.x - w.x)/dd * 260 * dt * 3; c.vy += (c.y - w.y)/dd * 260 * dt * 3; c.eating = 0; }
+ }
+ if (w.latch > 1.6) {
+ const idx = S.cows.indexOf(best);
+ if (idx >= 0) { S.cows.splice(idx, 1); S.cowsLost++; toast('WOLF TOOK ONE!'); }
+ w.state = 'flee'; w.fleeT = 2;
+ }
+ } else w.latch = Math.max(0, w.latch - dt);
+ }
+ }
+ w.x += w.vx * dt; w.y += w.vy * dt;
+ collideFeatures(w, false, dt);
+ }
+
+ for (let i = S.cows.length - 1; i >= 0; i--) {
+ const c = S.cows[i];
+ c.bob += dt * 4;
+ c.panic = Math.max(0, c.panic - dt * .6);
+
+ let inGrass = false;
+ for (const f of S.features) if (f.type === 'grass' && dist2(c.x, c.y, f.cx, f.cy) < f.rad * f.rad) inGrass = true;
+
+ let ax = 0, ay = 0;
+ let nx = 0, ny = 0, n = 0;
+ for (const o of S.cows) {
+ if (o === c) continue;
+ const d2 = dist2(c.x, c.y, o.x, o.y);
+ if (d2 < 110 * 110) { nx += o.x; ny += o.y; n++; }
+ if (d2 < 30 * 30 && d2 > 0.01) { const d = Math.sqrt(d2);
+ ax += (c.x - o.x)/d * 140; ay += (c.y - o.y)/d * 140; }
+ }
+ if (n) { ax += (nx/n - c.x) * 0.55; ay += (ny/n - c.y) * 0.55; }
+
+ ay -= inGrass ? 0 : 18;
+
+ const pd2 = dist2(c.x, c.y, P.x, P.y);
+ if (pd2 < 95 * 95) {
+ const d = Math.sqrt(pd2) || 1;
+ const force = (1 - d / 95) * 620;
+ ax += (c.x - P.x)/d * force; ay += (c.y - P.y)/d * force;
+ c.eating = 0; inGrass = false;
+ }
+ for (const w of S.wolves) {
+ const wd2 = dist2(c.x, c.y, w.x, w.y);
+ if (wd2 < 130 * 130 && w.state !== 'flee') { const d = Math.sqrt(wd2) || 1;
+ ax += (c.x - w.x)/d * 300; ay += (c.y - w.y)/d * 300; }
+ }
+
+ if (inGrass) { c.eating = 1; c.vx *= 0.9; c.vy *= 0.9; ax *= 0.15; ay *= 0.15; }
+ else c.eating = 0;
+
+ c.vx += ax * dt; c.vy += ay * dt;
+ const damp = Math.pow(0.12, dt);
+ c.vx *= damp; c.vy *= damp;
+ const vmax = c.panic > 0 ? 230 : 150;
+ const v = Math.hypot(c.vx, c.vy);
+ if (v > vmax) { c.vx = c.vx/v*vmax; c.vy = c.vy/v*vmax; }
+ c.x += c.vx * dt; c.y += c.vy * dt;
+ collideFeatures(c, false, dt);
+ c.x = clamp(c.x, c.r, W - c.r);
+
+ if (c.y - c.r > screenBot) {
+ S.cows.splice(i, 1); S.cowsLost++;
+ S.parts.push({ x: c.x, y: screenBot - 6, vx: 0, vy: -30, life: .8, col: '#e8c98f', txt: '−1' });
+ continue;
+ }
+ c.y = Math.max(c.y, screenTop + c.r);
+ }
+
+ if (Math.hypot(P.vx, P.vy) > 120 && Math.random() < .6)
+ S.parts.push({ x: P.x + rand(-6,6), y: P.y + 12, vx: rand(-15,15), vy: rand(5,25), life: .6, col: 'rgba(200,170,130,.7)' });
+ for (let i = S.parts.length - 1; i >= 0; i--) {
+ const p = S.parts[i]; p.x += p.vx*dt; p.y += p.vy*dt; p.life -= dt;
+ if (p.life <= 0) S.parts.splice(i, 1);
+ }
+ if (lassoAnim) { lassoAnim.t += dt * 3; if (lassoAnim.t > 1) lassoAnim = null; }
+
+ S.score += S.cows.length * dt;
+ hudHerd.textContent = '🐄 ' + S.cows.length;
+ hudScore.textContent = Math.floor(S.score);
+ hudFx.textContent = (S.boostT > 0 ? '⚡' + S.boostT.toFixed(0) + 's ' : '') + (S.lassoCharges ? '🪢×' + S.lassoCharges : '');
+
+ if (!S.cows.length) endGame();
+}
+
+// ============================== RENDER ==============================
+function draw() {
+  const sy = y => y - S.camY;
+
+  // ---- BACKGROUND — rich gradient prairie ----
+  const bgGrad = ctx.createLinearGradient(0, 0, W * .4, H);
+  bgGrad.addColorStop(0,   '#6fa83a');
+  bgGrad.addColorStop(.4,  '#c09840');
+  bgGrad.addColorStop(1,   '#7a5a28');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Scroll bands for movement feel
+  const off = ((-S.camY) % 90 + 90) % 90;
+  for (let y = -90 + off; y < H; y += 90) {
+    const sg = ctx.createLinearGradient(0, y, 0, y + 32);
+    sg.addColorStop(0,   'rgba(70,120,25,0)');
+    sg.addColorStop(.45, 'rgba(70,120,25,0.16)');
+    sg.addColorStop(1,   'rgba(70,120,25,0)');
+    ctx.fillStyle = sg; ctx.fillRect(0, y, W, 32);
+  }
+
+  // Scattered stones + wildflowers
+  const sb = Math.floor(S.camY / 200);
+  for (let k = 0; k < 65; k++) {
+    const sv  = Math.sin((sb + k) * 1247.3) * 43758.5;
+    const sv2 = Math.sin((sb + k) * 9301.1) * 49297.1;
+    const fx  = (sv  - Math.floor(sv))  * W;
+    const fy  = ((sv2 - Math.floor(sv2)) * H*3 - ((-S.camY) % (H*3)) + H*3) % (H*3) - H*.3;
+    if (k < 45) {
+      const sz = 1.5 + (sv - Math.floor(sv)) * 3;
+      ctx.fillStyle = `rgba(100,72,42,${.12 + (sv2-Math.floor(sv2))*.18})`;
+      ctx.beginPath(); ctx.ellipse(fx, fy, sz, sz*.65, (sv2-Math.floor(sv2))*Math.PI, 0, Math.PI*2); ctx.fill();
+    } else {
+      const cols = ['rgba(255,215,70,.55)','rgba(220,90,110,.48)','rgba(180,220,255,.42)'];
+      ctx.fillStyle = cols[k % 3];
+      ctx.beginPath(); ctx.arc(fx, fy, 2, 0, Math.PI*2); ctx.fill();
+    }
+  }
+
+  // ---- FEATURES ----
+  for (const f of S.features) {
+    if (f.type === 'grass') {
+      const cy = sy(f.cy);
+      if (cy < -200 || cy > H + 200) continue;
+      // Glowing patch
+      const gg = ctx.createRadialGradient(f.cx, cy, 0, f.cx, cy, f.rad);
+      gg.addColorStop(0,   'rgba(72,160,44,.95)');
+      gg.addColorStop(.65, 'rgba(52,130,32,.82)');
+      gg.addColorStop(1,   'rgba(52,130,32,0)');
+      ctx.fillStyle = gg;
+      ctx.beginPath(); ctx.ellipse(f.cx, cy, f.rad, f.rad*.78, 0, 0, Math.PI*2); ctx.fill();
+      // Curved blades
+      ctx.strokeStyle = '#3a7f22'; ctx.lineWidth = 1.8; ctx.lineCap = 'round';
+      for (let g = 0; g < 20; g++) {
+        const gx = f.cx + Math.cos(g*2.0)*f.rad*.62*((g%3+1)/3);
+        const gy = cy + Math.sin(g*1.8)*f.rad*.48*((g%2+1)/2);
+        ctx.beginPath(); ctx.moveTo(gx, gy+5);
+        ctx.quadraticCurveTo(gx+(g%2?2.5:-2.5), gy-2, gx+(g%2?-3.5:3.5), gy-9); ctx.stroke();
+      }
+      continue;
+    }
+
+    const top = sy(f.yTop);
+    if (top > H + 200 || top + f.h < -200) continue;
+
+    if (f.type === 'river') {
+      // Deep water gradient
+      const rg = ctx.createLinearGradient(0, top, 0, top + f.h);
+      rg.addColorStop(0, '#1e5870'); rg.addColorStop(.5, '#2e7a9a'); rg.addColorStop(1, '#1a4e64');
+      ctx.fillStyle = rg; ctx.fillRect(0, top, W, f.h);
+      // Shimmer ripples
+      const woff = (S.t * 38) % 56;
+      ctx.fillStyle = 'rgba(160,220,255,.2)';
+      for (let x = -56+woff; x < W+20; x += 56) {
+        ctx.beginPath(); ctx.ellipse(x, top+f.h*.32, 22, 3.5, .15, 0, Math.PI*2); ctx.fill();
+      }
+      ctx.fillStyle = 'rgba(160,220,255,.14)';
+      for (let x = -28+woff; x < W+20; x += 56) {
+        ctx.beginPath(); ctx.ellipse(x+20, top+f.h*.7, 16, 2.8, -.1, 0, Math.PI*2); ctx.fill();
+      }
+      // Wooden crossing
+      const gl = f.gapX - f.gapW/2, gR = f.gapX + f.gapW/2;
+      const pg = ctx.createLinearGradient(gl, 0, gR, 0);
+      pg.addColorStop(0,'#7a5030'); pg.addColorStop(.5,'#9c6840'); pg.addColorStop(1,'#7a5030');
+      ctx.fillStyle = pg; ctx.fillRect(gl, top-5, f.gapW, f.h+10);
+      ctx.strokeStyle = '#5a3820'; ctx.lineWidth = 2;
+      for (let bx = gl+6; bx < gR-4; bx += 14) {
+        ctx.beginPath(); ctx.moveTo(bx, top-5); ctx.lineTo(bx, top+f.h+5); ctx.stroke();
+      }
+      // Water edge glow
+      ctx.fillStyle = 'rgba(46,122,154,.35)';
+      ctx.fillRect(0, top-2, W, 4); ctx.fillRect(0, top+f.h-2, W, 4);
+
+    } else if (f.type === 'fence') {
+      const gl = f.gapX - f.gapW/2, gR = f.gapX + f.gapW/2;
+      // Rails with gradient
+      const rg2 = ctx.createLinearGradient(0, top, 0, top+12);
+      rg2.addColorStop(0,'#c09060'); rg2.addColorStop(1,'#7a5030');
+      ctx.fillStyle = rg2;
+      ctx.beginPath(); ctx.roundRect(0,     top+1, gl,    5, 2); ctx.fill();
+      ctx.beginPath(); ctx.roundRect(gR,    top+1, W-gR,  5, 2); ctx.fill();
+      ctx.beginPath(); ctx.roundRect(0,     top+7, gl,    4, 2); ctx.fill();
+      ctx.beginPath(); ctx.roundRect(gR,    top+7, W-gR,  4, 2); ctx.fill();
+      // Posts
+      for (let px = 8; px < W; px += 44) {
+        if (px > gl-8 && px < gR+8) continue;
+        const postG = ctx.createLinearGradient(px, top-8, px+6, top+20);
+        postG.addColorStop(0,'#c09060'); postG.addColorStop(1,'#7a5030');
+        ctx.fillStyle = postG;
+        ctx.beginPath(); ctx.roundRect(px, top-8, 6, 26, 2); ctx.fill();
+        ctx.fillStyle = 'rgba(255,200,120,.2)';
+        ctx.fillRect(px+1, top-8, 2, 26);
+      }
+      // Gate posts
+      const gpostG = ctx.createLinearGradient(0, top-12, 0, top+22);
+      gpostG.addColorStop(0,'#d4a860'); gpostG.addColorStop(1,'#8a5830');
+      ctx.fillStyle = gpostG;
+      ctx.beginPath(); ctx.roundRect(gl-8,  top-12, 9, 32, 3); ctx.fill();
+      ctx.beginPath(); ctx.roundRect(gR-1,  top-12, 9, 32, 3); ctx.fill();
+
+    } else if (f.type === 'canyon') {
+      // Left wall
+      const cwL = ctx.createLinearGradient(0, 0, f.wallW, 0);
+      cwL.addColorStop(0,'#6a3818'); cwL.addColorStop(.75,'#9a5230'); cwL.addColorStop(1,'#4a2410');
+      ctx.fillStyle = cwL; ctx.fillRect(0, top, f.wallW, f.h);
+      // Right wall
+      const cwR = ctx.createLinearGradient(W-f.wallW, 0, W, 0);
+      cwR.addColorStop(0,'#4a2410'); cwR.addColorStop(.25,'#9a5230'); cwR.addColorStop(1,'#6a3818');
+      ctx.fillStyle = cwR; ctx.fillRect(W-f.wallW, top, f.wallW, f.h);
+      // Rock strata
+      ctx.fillStyle = 'rgba(200,110,55,.22)';
+      for (let yy = top+14; yy < top+f.h-10; yy += 42) {
+        ctx.fillRect(8,           yy,      f.wallW-20, 10);
+        ctx.fillRect(W-f.wallW+12, yy+20, f.wallW-20, 10);
+      }
+      // Cliff-edge shadow gradient
+      const edL = ctx.createLinearGradient(f.wallW-14, 0, f.wallW+6, 0);
+      edL.addColorStop(0,'rgba(20,5,0,.65)'); edL.addColorStop(1,'rgba(20,5,0,0)');
+      ctx.fillStyle = edL; ctx.fillRect(f.wallW-14, top, 20, f.h);
+      const edR = ctx.createLinearGradient(W-f.wallW-6, 0, W-f.wallW+14, 0);
+      edR.addColorStop(0,'rgba(20,5,0,0)'); edR.addColorStop(1,'rgba(20,5,0,.65)');
+      ctx.fillStyle = edR; ctx.fillRect(W-f.wallW-6, top, 20, f.h);
+    }
+  }
+
+  // ---- PICKUPS ----
+  for (const p of S.pickups) {
+    const py = sy(p.y) + Math.sin(S.t * 3 + p.bob) * 5;
+    if (py < -40 || py > H + 40) continue;
+    const pulse = .5 + Math.sin(S.t * 4 + p.bob) * .32;
+    ctx.save();
+    ctx.shadowColor = p.kind === 'sugar' ? '#60c0ff' : '#f0c040';
+    ctx.shadowBlur = 18 * pulse;
+    ctx.strokeStyle = p.kind === 'sugar' ? 'rgba(90,180,255,.6)' : 'rgba(240,192,60,.6)';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(p.x, py, 18 + pulse*3, 0, Math.PI*2); ctx.stroke();
+    ctx.restore();
+    ctx.font = '24px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(p.kind === 'sugar' ? '🧊' : '🪢', p.x, py);
+  }
+
+  // ---- PARTICLES ----
+  for (const p of S.parts) {
+    ctx.globalAlpha = Math.max(0, p.life);
+    if (p.txt) {
+      ctx.fillStyle = p.col;
+      ctx.font = 'bold 18px Inter,sans-serif';
+      ctx.textAlign = 'center'; ctx.fillText(p.txt, p.x, sy(p.y));
+    } else {
+      ctx.fillStyle = p.col;
+      ctx.beginPath(); ctx.arc(p.x, sy(p.y), 3, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // ---- COWS ----
+  for (const c of S.cows) {
+    const cy = sy(c.y), bo = Math.sin(c.bob) * 1.5;
+    const isLight = c.tint === '#c9b8a0';
+
+    // Drop shadow
+    ctx.fillStyle = 'rgba(35,20,8,.28)';
+    ctx.beginPath(); ctx.ellipse(c.x+2, cy+12, 13, 5, 0, 0, Math.PI*2); ctx.fill();
+
+    // Body with radial gradient
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,.28)'; ctx.shadowBlur = 6;
+    const bg = ctx.createRadialGradient(c.x-4, cy-3+bo, 1, c.x, cy+bo, 14);
+    bg.addColorStop(0, isLight ? '#e0d0b0' : '#6e4432');
+    bg.addColorStop(1, isLight ? '#a88a60' : '#2e1c10');
+    ctx.fillStyle = bg;
+    ctx.beginPath(); ctx.roundRect(c.x-11, cy-7+bo, 22, 14, 5); ctx.fill();
+    ctx.restore();
+
+    // Spots
+    ctx.fillStyle = isLight ? 'rgba(56,34,18,.5)' : 'rgba(215,190,158,.32)';
+    ctx.beginPath(); ctx.roundRect(c.x-6,  cy-5+bo, 6, 6, 2); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(c.x+3,  cy+1+bo, 5, 5, 2); ctx.fill();
+
+    // Head
+    const hd = c.vx >= 0 ? 1 : -1;
+    const hg = ctx.createRadialGradient(c.x+hd*11, cy-8+bo, 1, c.x+hd*11, cy-7+bo, 6);
+    hg.addColorStop(0,'#5e4030'); hg.addColorStop(1,'#3a2418');
+    ctx.fillStyle = hg;
+    ctx.beginPath(); ctx.roundRect(c.x+hd*9, cy-9+bo, 8, 8, 3); ctx.fill();
+
+    // Eye
+    ctx.fillStyle = 'rgba(255,255,255,.75)';
+    ctx.beginPath(); ctx.arc(c.x+hd*14.5, cy-7.5+bo, 1.8, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#180800';
+    ctx.beginPath(); ctx.arc(c.x+hd*14.5, cy-7.5+bo, .9, 0, Math.PI*2); ctx.fill();
+
+    // Curved horns
+    ctx.strokeStyle = '#d8cc88'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(c.x+hd*10, cy-9+bo); ctx.lineTo(c.x+hd*8,  cy-14+bo); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(c.x+hd*16, cy-9+bo); ctx.lineTo(c.x+hd*18, cy-14+bo); ctx.stroke();
+
+    // Status
+    if (c.eating) {
+      ctx.fillStyle = '#50b830'; ctx.font = '600 10px Inter,sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('nom', c.x, cy-19);
+    }
+    if (c.panic > 0) {
+      ctx.save();
+      ctx.shadowColor = '#ff4020'; ctx.shadowBlur = 10;
+      ctx.fillStyle = '#ff4828'; ctx.font = 'bold 14px Inter,sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('!', c.x, cy-19);
+      ctx.restore();
+    }
+  }
+
+  // ---- WOLVES ----
+  for (const w of S.wolves) {
+    const wy = sy(w.y);
+    const whd = w.vx >= 0 ? 1 : -1;
+    const isFlee = w.state === 'flee';
+
+    ctx.fillStyle = 'rgba(25,15,8,.3)';
+    ctx.beginPath(); ctx.ellipse(w.x+2, wy+10, 12, 4.5, 0, 0, Math.PI*2); ctx.fill();
+
+    ctx.save();
+    if (!isFlee) { ctx.shadowColor = 'rgba(180,30,0,.45)'; ctx.shadowBlur = 12; }
+    const wg = ctx.createRadialGradient(w.x-2, wy-2, 1, w.x, wy, 13);
+    wg.addColorStop(0, isFlee ? '#8a8a9a' : '#5a5a6a');
+    wg.addColorStop(1, isFlee ? '#555566' : '#28283a');
+    ctx.fillStyle = wg;
+    ctx.beginPath(); ctx.roundRect(w.x-10, wy-5, 21, 11, 4); ctx.fill();
+    // Head
+    ctx.beginPath(); ctx.roundRect(w.x+whd*8, wy-8, 9, 8, 3); ctx.fill();
+    // Ear
+    ctx.fillStyle = isFlee ? '#7a7a8a' : '#484858';
+    ctx.beginPath(); ctx.moveTo(w.x+whd*10, wy-8); ctx.lineTo(w.x+whd*10, wy-14); ctx.lineTo(w.x+whd*15, wy-8); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    // Tail
+    ctx.strokeStyle = isFlee ? '#7a7a8a' : '#484858'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(w.x-whd*10, wy-2);
+    ctx.quadraticCurveTo(w.x-whd*17, wy-8, w.x-whd*15, wy-13); ctx.stroke();
+    // Eyes
+    if (!isFlee) {
+      ctx.save();
+      ctx.shadowColor = '#ff2010'; ctx.shadowBlur = 10;
+      ctx.fillStyle = '#ff3822';
+      ctx.beginPath(); ctx.arc(w.x+whd*14, wy-6, 2.8, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+    } else {
+      ctx.fillStyle = 'rgba(180,180,200,.55)';
+      ctx.beginPath(); ctx.arc(w.x+whd*14, wy-6, 2, 0, Math.PI*2); ctx.fill();
+    }
+  }
+
+  // ---- LASSO ANIMATION ----
+  if (lassoAnim && lassoAnim.cow) {
+    const Pl = S.player, cl = lassoAnim.cow;
+    ctx.save();
+    ctx.shadowColor = 'rgba(240,200,70,.7)'; ctx.shadowBlur = 10;
+    ctx.strokeStyle = '#f0d050'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.setLineDash([7, 4]);
+    ctx.beginPath();
+    ctx.moveTo(Pl.x, sy(Pl.y));
+    ctx.quadraticCurveTo((Pl.x+cl.x)/2, sy(Math.min(Pl.y,cl.y))-60*(1-lassoAnim.t), cl.x, sy(cl.y));
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(cl.x, sy(cl.y), 18*(1-lassoAnim.t)+6, 0, Math.PI*2); ctx.stroke();
+    ctx.restore();
+  }
+
+  // ---- PLAYER (cowboy on horse) ----
+  const P = S.player, pty = sy(P.y), gv = Math.sin(P.gallop) * 2.5, pf = P.face;
+
+  // Shadow
+  ctx.fillStyle = 'rgba(35,20,8,.32)';
+  ctx.beginPath(); ctx.ellipse(P.x+3, pty+16, 17, 5.5, 0, 0, Math.PI*2); ctx.fill();
+
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,.38)'; ctx.shadowBlur = 9;
+
+  // Horse body
+  const hbg = ctx.createRadialGradient(P.x-3, pty-2+gv, 2, P.x, pty+gv, 17);
+  hbg.addColorStop(0,'#9e5e32'); hbg.addColorStop(1,'#5a2e10');
+  ctx.fillStyle = hbg;
+  ctx.beginPath(); ctx.roundRect(P.x-13, pty-4+gv, 27, 13, 5); ctx.fill();
+  // Legs
+  ctx.fillStyle = '#6a3c1c';
+  ctx.beginPath(); ctx.roundRect(P.x-12, pty+7+gv, 5, 9, 2); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(P.x+7,  pty+7+gv, 5, 9, 2); ctx.fill();
+  // Horse head
+  ctx.fillStyle = hbg;
+  ctx.beginPath(); ctx.roundRect(P.x+pf*11, pty-11+gv, 10, 11, 3); ctx.fill();
+  // Mane
+  ctx.fillStyle = '#2e1608';
+  ctx.beginPath(); ctx.roundRect(P.x+pf*10, pty-14+gv, 5, 8, 2); ctx.fill();
+  // Tail
+  ctx.strokeStyle = '#2e1608'; ctx.lineWidth = 4.5; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(P.x-pf*13, pty-2+gv);
+  ctx.quadraticCurveTo(P.x-pf*19, pty+5+gv, P.x-pf*17, pty+12+gv); ctx.stroke();
+  ctx.restore();
+
+  // Rider body — denim jacket
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,.3)'; ctx.shadowBlur = 6;
+  const rbg = ctx.createLinearGradient(P.x-4, pty-18+gv, P.x+6, pty-5+gv);
+  rbg.addColorStop(0,'#4e78b8'); rbg.addColorStop(1,'#2e4a80');
+  ctx.fillStyle = rbg;
+  ctx.beginPath(); ctx.roundRect(P.x-5, pty-18+gv, 11, 13, 3); ctx.fill();
+  // Skin (head)
+  ctx.fillStyle = '#d49870';
+  ctx.beginPath(); ctx.arc(P.x+1, pty-22+gv, 5.5, 0, Math.PI*2); ctx.fill();
+  // Hat brim + crown
+  const hatG = ctx.createLinearGradient(P.x-9, pty-27+gv, P.x+8, pty-24+gv);
+  hatG.addColorStop(0,'#c07848'); hatG.addColorStop(1,'#8a4e28');
+  ctx.fillStyle = hatG;
+  ctx.beginPath(); ctx.roundRect(P.x-9, pty-27+gv, 19, 4, 2); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(P.x-4, pty-33+gv, 11, 7, 3); ctx.fill();
+  ctx.fillStyle = '#3e1e08'; ctx.fillRect(P.x-4, pty-28+gv, 11, 2);
+  ctx.restore();
+
+  // Boost aura
+  if (S.boostT > 0) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,222,70,.75)'; ctx.lineWidth = 3;
+    ctx.shadowColor = '#ffdc44'; ctx.shadowBlur = 18;
+    const pulse3 = 1 + Math.sin(S.t * 12) * .12;
+    ctx.beginPath(); ctx.arc(P.x, pty-6, 28*pulse3, 0, Math.PI*2); ctx.stroke();
+    ctx.restore();
+  }
+
+  // Danger gradient at bottom
+  const dg = ctx.createLinearGradient(0, H-72, 0, H);
+  dg.addColorStop(0, 'rgba(180,40,20,0)'); dg.addColorStop(1, 'rgba(180,40,20,.52)');
+  ctx.fillStyle = dg; ctx.fillRect(0, H-72, W, 72);
+}
+
+// ============================== GAME LOOP ==============================
+let last = 0;
+function loop(ts) {
+ if (!S.running) return;
+ const dt = Math.min((ts - last) / 1000, 0.05); last = ts;
+ update(dt);
+ draw();
+ requestAnimationFrame(loop);
+}
+
+function startGame() {
+ S.running = true; S.t = 0; S.score = 0; S.camY = -H; S.scrollSpeed = 26;
+ S.cows = []; S.wolves = []; S.features = []; S.pickups = []; S.parts = [];
+ S.lassoCharges = profile.startingLassos;
+ S.boostT = 0; S.cowsLost = 0; S.wolvesRepelled = 0; S._wolfT = 0;
+ S.nextFeatureY = -H * 1.6;
+ S.player = makePlayer();
+ S.player.y = -H * .35;
+ for (let i = 0; i < profile.startingCows; i++)
+ S.cows.push(makeCow(W/2 + rand(-70, 70), -H * .5 + rand(-50, 50)));
+ updateLassoBtn();
+ document.getElementById('menu').classList.add('hidden');
+ document.getElementById('gameover').classList.add('hidden');
+ last = performance.now();
+ requestAnimationFrame(loop);
+}
+
+function endGame() {
+ S.running = false;
+ const runScore = Math.floor(S.score);
+ const wasUnlocked = profile.unlocked;
+ profile.addScore(runScore);
+ const nowUnlocked = profile.unlocked;
+
+ document.getElementById('goScore').textContent = runScore;
+ document.getElementById('goStats').innerHTML =
+ `Time on the trail: <b>${Math.floor(S.t)}s</b><br>` +
+ `Cattle lost: <b>${S.cowsLost}</b><br>` +
+ `Wolves run off: <b>${S.wolvesRepelled}</b>`;
+
+ const lifeEl = document.getElementById('goLifetime');
+ lifeEl.textContent = `${profile.name ? profile.name.toUpperCase() + ' · ' : ''}LIFETIME ${Math.floor(profile.lifetime)}`;
+
+ const unlockEl = document.getElementById('goUnlock');
+ if (!wasUnlocked && nowUnlocked) {
+   unlockEl.textContent = '🏅 TRAIL LEGEND UNLOCKED — +1 LASSO · BONUS COW!';
+   unlockEl.classList.remove('hidden');
+ } else if (nowUnlocked) {
+   unlockEl.textContent = '🏅 TRAIL LEGEND — +1 LASSO · BONUS COW ACTIVE';
+   unlockEl.classList.remove('hidden');
+ } else {
+   const needed = Math.ceil(UNLOCK_SCORE - profile.lifetime);
+   unlockEl.textContent = `${needed} MORE TO UNLOCK TRAIL LEGEND`;
+   unlockEl.classList.remove('hidden');
+ }
+
+ document.getElementById('gameover').classList.remove('hidden');
+ lassoBtn.style.display = 'none';
+ updateProfileUI();
+}
+
+document.getElementById('startBtn').addEventListener('click', startGame);
+document.getElementById('retryBtn').addEventListener('click', startGame);
+
+initProfile();
+</script>
+</body>
+</html>

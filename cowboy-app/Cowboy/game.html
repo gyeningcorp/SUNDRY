@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>COWS AND BOYS</title>
+<style>
+ :root { --ink:#2b1d16; --sand:#e8c98f; --sage:#8a9a5b; --sky:#c46a3a; }
+ * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+ html,body { height:100%; overflow:hidden; background:#1a1210; touch-action:none; overscroll-behavior:none;
+ font-family:"Courier New", Courier, monospace; }
+ #game { display:block; width:100vw; height:100vh; image-rendering:pixelated; }
+ .hud { position:fixed; top:env(safe-area-inset-top,0); left:0; right:0; display:flex;
+ justify-content:space-between; padding:10px 14px; pointer-events:none; z-index:5;
+ color:#f3e3c3; font-weight:bold; text-shadow:1px 1px 0 #2b1d16; font-size:15px; letter-spacing:1px; }
+ .hud .pill { background:rgba(43,29,22,.72); border:2px solid #5a4030; padding:4px 10px; border-radius:4px; }
+ #lassoBtn { position:fixed; bottom:calc(22px + env(safe-area-inset-bottom,0)); right:20px; z-index:6;
+ width:76px; height:76px; border-radius:50%; border:3px solid #f3e3c3; background:rgba(196,106,58,.85);
+ color:#fff; font-family:inherit; font-weight:bold; font-size:13px; letter-spacing:1px; display:none;
+ box-shadow:0 3px 0 #2b1d16; }
+ #lassoBtn:active { transform:translateY(2px); box-shadow:none; }
+ .overlay { position:fixed; inset:0; z-index:10; display:flex; flex-direction:column; align-items:center;
+ justify-content:center; text-align:center; color:#f3e3c3; background:rgba(26,18,16,.88); padding:24px; }
+ .overlay h1 { font-size:clamp(44px,12vw,84px); letter-spacing:6px; color:#e8c98f;
+ text-shadow:4px 4px 0 #7a3b1e, 8px 8px 0 #2b1d16; margin-bottom:6px; }
+ .overlay .sub { font-size:14px; letter-spacing:3px; color:#c46a3a; margin-bottom:26px; }
+ .overlay .card { background:rgba(43,29,22,.8); border:2px solid #5a4030; border-radius:6px;
+ padding:16px 20px; max-width:420px; font-size:14px; line-height:1.7; margin-bottom:26px; }
+ .overlay .card b { color:#e8c98f; }
+ .overlay button { font-family:inherit; font-size:18px; font-weight:bold; letter-spacing:2px;
+ padding:14px 34px; background:#c46a3a; color:#fff; border:3px solid #f3e3c3; border-radius:6px;
+ box-shadow:0 4px 0 #2b1d16; cursor:pointer; }
+ .overlay button:active { transform:translateY(3px); box-shadow:0 1px 0 #2b1d16; }
+ .big { font-size:clamp(34px,9vw,60px); color:#e8c98f; margin:8px 0 2px; }
+ .hidden { display:none !important; }
+ #toast { position:fixed; left:50%; top:16%; transform:translateX(-50%); z-index:7; pointer-events:none;
+ color:#ffe9b0; font-weight:bold; font-size:18px; letter-spacing:2px; text-shadow:2px 2px 0 #2b1d16;
+ opacity:0; transition:opacity .25s; }
+ #nameEntry { position:fixed; inset:0; z-index:20; display:flex; flex-direction:column; align-items:center;
+ justify-content:center; background:rgba(26,18,16,.97); padding:24px; text-align:center; }
+ #nameEntry h1 { font-size:clamp(36px,10vw,72px); letter-spacing:6px; color:#e8c98f;
+ text-shadow:4px 4px 0 #7a3b1e,8px 8px 0 #2b1d16; margin-bottom:8px; }
+ #nameEntry .sub { font-size:13px; letter-spacing:3px; color:#c46a3a; margin-bottom:28px; }
+ #nameEntry input { font-family:inherit; font-size:22px; text-align:center; letter-spacing:3px;
+ color:#f3e3c3; background:rgba(43,29,22,.9); border:2px solid #5a4030; border-radius:6px;
+ padding:12px 20px; width:min(280px,80vw); margin-bottom:20px; outline:none; }
+ #nameEntry input::placeholder { color:#5a4030; }
+ #nameEntry button { font-family:inherit; font-size:18px; font-weight:bold; letter-spacing:2px;
+ padding:14px 34px; background:#c46a3a; color:#fff; border:3px solid #f3e3c3; border-radius:6px;
+ box-shadow:0 4px 0 #2b1d16; cursor:pointer; }
+ .profile-bar { font-size:12px; letter-spacing:2px; color:#a08060; margin-bottom:10px; }
+ .unlock-badge { font-size:12px; color:#e8c98f; background:rgba(196,106,58,.3); border:1px solid #c46a3a;
+ border-radius:4px; padding:4px 10px; margin-bottom:16px; letter-spacing:1px; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="nameEntry" class="hidden">
+ <h1>COWS &amp;<br>BOYS</h1>
+ <div class="sub">WHAT'S YOUR NAME, COWBOY?</div>
+ <input id="nameInput" type="text" maxlength="16" placeholder="YOUR NAME" autocomplete="off" autocorrect="off" spellcheck="false">
+ <button id="nameSubmitBtn">HIT THE TRAIL</button>
+</div>
+
+<div class="hud">
+ <span class="pill" id="hudHerd">🐄 0</span>
+ <span class="pill" id="hudScore">0</span>
+ <span class="pill" id="hudFx"></span>
+</div>
+<button id="lassoBtn">LASSO</button>
+<div id="toast"></div>
+
+<div class="overlay" id="menu">
+ <h1>COWS &amp;<br>BOYS</h1>
+ <div class="sub">KEEP THE HERD MOVIN'</div>
+ <div id="profileBar" class="profile-bar"></div>
+ <div id="unlockBadge" class="unlock-badge hidden"></div>
+ <div class="card">
+ The trail scrolls up — any cow that falls off the bottom is <b>lost</b>.<br><br>
+ <b>Move:</b> touch &amp; drag.<br>
+ <b>Herd:</b> ride close — cows shy away from you. Push 'em north.<br>
+ <b>Watch for:</b> rivers &amp; fences (find the gap), canyons, wolves, and tall grass where cows stop to graze.<br>
+ <b>Grab:</b> 🧊 sugar = speed boost · 🪢 lasso = yank your worst straggler.<br><br>
+ Score = time survived × herd size. Lose every cow and it's over.
+ </div>
+ <button id="startBtn">RIDE OUT</button>
+</div>
+
+<div class="overlay hidden" id="gameover">
+ <h1 style="font-size:clamp(32px,9vw,60px)">TRAIL'S END</h1>
+ <div class="sub" id="goReason">THE HERD IS GONE</div>
+ <div class="big" id="goScore">0</div>
+ <div class="sub">SCORE</div>
+ <div class="card" id="goStats"></div>
+ <div id="goLifetime" class="profile-bar" style="margin-bottom:16px;"></div>
+ <div id="goUnlock" class="unlock-badge hidden" style="margin-bottom:16px;"></div>
+ <button id="retryBtn">RIDE AGAIN</button>
+</div>
+
+<script>
+"use strict";
+// ============================== SETUP ==============================
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+let W = 0, H = 0, DPR = 1;
+function resize() {
+ DPR = Math.min(window.devicePixelRatio || 1, 2);
+ W = window.innerWidth; H = window.innerHeight;
+ canvas.width = W * DPR; canvas.height = H * DPR;
+ canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+ ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+window.addEventListener('resize', resize); resize();
+
+const hudHerd = document.getElementById('hudHerd');
+const hudScore = document.getElementById('hudScore');
+const hudFx = document.getElementById('hudFx');
+const lassoBtn = document.getElementById('lassoBtn');
+const toastEl = document.getElementById('toast');
+
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const dist2 = (ax, ay, bx, by) => { const dx = ax - bx, dy = ay - by; return dx*dx + dy*dy; };
+
+// ============================== PROFILE ==============================
+const UNLOCK_SCORE = 300;
+const profile = {
+  get name() { return localStorage.getItem('cb_name') || ''; },
+  set name(v) { localStorage.setItem('cb_name', v); },
+  get lifetime() { return parseFloat(localStorage.getItem('cb_lifetime') || '0'); },
+  addScore(s) { localStorage.setItem('cb_lifetime', (this.lifetime + s).toFixed(1)); },
+  get unlocked() { return this.lifetime >= UNLOCK_SCORE; },
+  get startingLassos() { return this.unlocked ? 3 : 2; },
+  get startingCows() { return this.unlocked ? 9 : 8; },
+};
+
+function updateProfileUI() {
+  const bar = document.getElementById('profileBar');
+  const badge = document.getElementById('unlockBadge');
+  if (profile.name) {
+    bar.textContent = `${profile.name.toUpperCase()} · LIFETIME ${Math.floor(profile.lifetime)}`;
+  }
+  if (profile.unlocked) {
+    badge.textContent = '🏅 TRAIL LEGEND — +1 LASSO · BONUS COW';
+    badge.classList.remove('hidden');
+  } else {
+    const needed = Math.ceil(UNLOCK_SCORE - profile.lifetime);
+    badge.textContent = `${needed} MORE TO UNLOCK TRAIL LEGEND`;
+    badge.classList.remove('hidden');
+  }
+}
+
+function initProfile() {
+  if (!profile.name) {
+    document.getElementById('nameEntry').classList.remove('hidden');
+    document.getElementById('menu').classList.add('hidden');
+    const input = document.getElementById('nameInput');
+    const submit = document.getElementById('nameSubmitBtn');
+    const doSubmit = () => {
+      const n = input.value.trim();
+      if (!n) { input.focus(); return; }
+      profile.name = n;
+      document.getElementById('nameEntry').classList.add('hidden');
+      document.getElementById('menu').classList.remove('hidden');
+      updateProfileUI();
+    };
+    submit.addEventListener('click', doSubmit);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') doSubmit(); });
+    input.focus();
+  } else {
+    updateProfileUI();
+  }
+}
+
+// ============================== STATE ==============================
+const S = {
+ running: false, t: 0, score: 0,
+ camY: 0,
+ scrollSpeed: 26,
+ player: null, cows: [], wolves: [], features: [], pickups: [], parts: [],
+ lassoCharges: 0, boostT: 0, nextFeatureY: 0,
+ cowsLost: 0, wolvesRepelled: 0, keys: {},
+ touch: { active: false, x: 0, y: 0 },
+};
+
+// ============================== INPUT ==============================
+window.addEventListener('keydown', e => {
+ S.keys[e.key.toLowerCase()] = true;
+ if (e.key === ' ') { e.preventDefault(); fireLasso(); }
+});
+window.addEventListener('keyup', e => S.keys[e.key.toLowerCase()] = false);
+
+canvas.addEventListener('pointerdown', e => { S.touch.active = true; S.touch.x = e.clientX; S.touch.y = e.clientY; });
+canvas.addEventListener('pointermove', e => { if (S.touch.active) { S.touch.x = e.clientX; S.touch.y = e.clientY; } });
+window.addEventListener('pointerup', () => S.touch.active = false);
+window.addEventListener('pointercancel', () => S.touch.active = false);
+lassoBtn.addEventListener('pointerdown', e => { e.stopPropagation(); fireLasso(); });
+
+// ============================== ENTITIES ==============================
+function makePlayer() {
+ return { x: W/2, y: 0, vx: 0, vy: 0, speed: 250, r: 14, face: 1, gallop: 0 };
+}
+function makeCow(x, y) {
+ return { x, y, vx: 0, vy: 0, r: 12, eating: 0, panic: 0,
+ tint: Math.random() < .25 ? '#7a5236' : (Math.random() < .3 ? '#3d2e24' : '#c9b8a0'),
+ bob: rand(0, 6.28) };
+}
+function makeWolf(side, y) {
+ return { x: side < 0 ? -30 : W + 30, y, vx: 0, vy: 0, r: 12,
+ state: 'hunt', latch: 0, target: null, fleeT: 0 };
+}
+
+function pushFeature(type, yTop) {
+ const f = { type, yTop };
+ if (type === 'river' || type === 'fence') {
+ f.h = type === 'river' ? 64 : 14;
+ f.gapX = rand(W * .18, W * .82);
+ f.gapW = type === 'river' ? rand(70, 110) : rand(80, 130);
+ } else if (type === 'canyon') {
+ f.h = rand(320, 480);
+ f.wallW = rand(W * .2, W * .3);
+ } else if (type === 'grass') {
+ f.h = 0; f.cx = rand(W * .2, W * .8); f.cy = yTop; f.rad = rand(60, 95);
+ }
+ S.features.push(f);
+}
+
+function generateAhead() {
+ while (S.nextFeatureY > S.camY - H * 1.5) {
+ const roll = Math.random();
+ let type = roll < .26 ? 'river' : roll < .5 ? 'fence' : roll < .68 ? 'canyon' : 'grass';
+ if (S.t < 15) type = Math.random() < .5 ? 'grass' : 'fence';
+ pushFeature(type, S.nextFeatureY);
+ S.nextFeatureY -= rand(H * .55, H * .95);
+ if (Math.random() < .55) {
+ S.pickups.push({ kind: Math.random() < .5 ? 'sugar' : 'lasso',
+ x: rand(40, W - 40), y: S.nextFeatureY + rand(60, 200), r: 13, bob: rand(0, 6.28) });
+ }
+ }
+ S.features = S.features.filter(f => f.yTop < S.camY + H * 2);
+ S.pickups = S.pickups.filter(p => p.y < S.camY + H + 60);
+}
+
+// ============================== FEATURE PHYSICS ==============================
+function collideFeatures(e, isPlayer, dt) {
+ for (const f of S.features) {
+ if (f.type === 'river' || f.type === 'fence') {
+ const top = f.yTop, bot = f.yTop + f.h;
+ const inGap = e.x > f.gapX - f.gapW/2 + e.r*0.5 && e.x < f.gapX + f.gapW/2 - e.r*0.5;
+ if (isPlayer && f.type === 'river') continue;
+ if (!inGap && e.y + e.r > top && e.y - e.r < bot) {
+ if (e.y < (top + bot) / 2) { e.y = top - e.r; if (e.vy > 0) e.vy = 0; }
+ else { e.y = bot + e.r; if (e.vy < 0) e.vy = 0; }
+ if (!isPlayer) e.vx += (f.gapX - e.x) * 0.28 * dt;
+ }
+ } else if (f.type === 'canyon') {
+ if (e.y > f.yTop - e.r && e.y < f.yTop + f.h + e.r) {
+ const L = f.wallW, R = W - f.wallW;
+ if (e.x - e.r < L) { e.x = L + e.r; if (e.vx < 0) e.vx = 0; }
+ if (e.x + e.r > R) { e.x = R - e.r; if (e.vx > 0) e.vx = 0; }
+ }
+ }
+ }
+}
+
+// ============================== LASSO ==============================
+let lassoAnim = null;
+function fireLasso() {
+ if (!S.running || S.lassoCharges <= 0 || !S.cows.length) return;
+ let worst = S.cows[0];
+ for (const c of S.cows) if (c.y > worst.y) worst = c;
+ S.lassoCharges--;
+ lassoAnim = { t: 0, cow: worst };
+ worst.x = S.player.x + rand(-20, 20);
+ worst.y = S.player.y - 30;
+ worst.vx = 0; worst.vy = -40;
+ toast('YANKED ONE BACK!');
+ updateLassoBtn();
+}
+function updateLassoBtn() {
+ lassoBtn.style.display = S.lassoCharges > 0 ? 'block' : 'none';
+ lassoBtn.textContent = 'LASSO ×' + S.lassoCharges;
+}
+function toast(msg) {
+ toastEl.textContent = msg; toastEl.style.opacity = 1;
+ clearTimeout(toast._t); toast._t = setTimeout(() => toastEl.style.opacity = 0, 1200);
+}
+
+// ============================== UPDATE ==============================
+function update(dt) {
+ S.t += dt;
+ S.scrollSpeed = 26 + Math.min(44, S.t * 0.55);
+ S.camY -= S.scrollSpeed * dt;
+ generateAhead();
+
+ const P = S.player;
+ const screenTop = S.camY, screenBot = S.camY + H;
+
+ let ix = 0, iy = 0;
+ if (S.keys['a'] || S.keys['arrowleft']) ix -= 1;
+ if (S.keys['d'] || S.keys['arrowright']) ix += 1;
+ if (S.keys['w'] || S.keys['arrowup']) iy -= 1;
+ if (S.keys['s'] || S.keys['arrowdown']) iy += 1;
+ if (S.touch.active) {
+ const tx = S.touch.x, ty = S.touch.y + S.camY;
+ const dx = tx - P.x, dy = ty - P.y, d = Math.hypot(dx, dy);
+ if (d > 14) { ix = dx / d; iy = dy / d; }
+ }
+ const mag = Math.hypot(ix, iy) || 1;
+ const spd = P.speed * (S.boostT > 0 ? 1.55 : 1);
+ P.vx += (ix/mag * spd - P.vx) * Math.min(1, dt * 10);
+ P.vy += (iy/mag * spd - P.vy) * Math.min(1, dt * 10);
+ P.x += P.vx * dt; P.y += P.vy * dt;
+ if (ix) P.face = ix > 0 ? 1 : -1;
+ P.gallop += Math.hypot(P.vx, P.vy) * dt * 0.06;
+ collideFeatures(P, true, dt);
+ P.x = clamp(P.x, P.r, W - P.r);
+ P.y = clamp(P.y, screenTop + P.r + 4, screenBot - P.r - 4);
+ if (S.boostT > 0) { S.boostT -= dt;
+ if (Math.random() < .5) S.parts.push({ x:P.x, y:P.y+10, vx:rand(-20,20), vy:rand(10,40), life:.5, col:'#ffe9b0' }); }
+
+ for (let i = S.pickups.length - 1; i >= 0; i--) {
+ const p = S.pickups[i];
+ if (dist2(p.x, p.y, P.x, P.y) < (p.r + P.r) ** 2) {
+ if (p.kind === 'sugar') { S.boostT = 5; toast('SUGAR RUSH!'); }
+ else { S.lassoCharges++; toast('GOT A LASSO'); updateLassoBtn(); }
+ S.pickups.splice(i, 1);
+ }
+ }
+
+ const wolfEvery = Math.max(6, 14 - S.t * 0.08);
+ if (S.t > 20 && (S._wolfT = (S._wolfT || 0) + dt) > wolfEvery) {
+ S._wolfT = 0;
+ S.wolves.push(makeWolf(Math.random() < .5 ? -1 : 1, S.camY + rand(H * .2, H * .7)));
+ }
+
+ for (let i = S.wolves.length - 1; i >= 0; i--) {
+ const w = S.wolves[i];
+ const dP2 = dist2(w.x, w.y, P.x, P.y);
+ if (w.state !== 'flee' && dP2 < 120 * 120) {
+ w.state = 'flee'; w.fleeT = 2.5; w.latch = 0; S.wolvesRepelled++;
+ }
+ if (w.state === 'flee') {
+ const d = Math.sqrt(dP2) || 1;
+ w.vx += ((w.x - P.x)/d * 320 - w.vx) * dt * 6;
+ w.vy += ((w.y - P.y)/d * 320 - w.vy) * dt * 6;
+ w.fleeT -= dt;
+ if (w.fleeT <= 0 || w.x < -60 || w.x > W + 60) { S.wolves.splice(i, 1); continue; }
+ } else {
+ let best = null, bd = 1e18;
+ for (const c of S.cows) { const d = dist2(w.x, w.y, c.x, c.y); if (d < bd) { bd = d; best = c; } }
+ if (!best) { w.vy -= 40 * dt; }
+ else {
+ const d = Math.sqrt(bd) || 1;
+ const sp = 150;
+ w.vx += ((best.x - w.x)/d * sp - w.vx) * dt * 4;
+ w.vy += ((best.y - w.y)/d * sp - w.vy) * dt * 4;
+ if (d < w.r + best.r + 4) {
+ w.latch += dt; best.panic = 1;
+ for (const c of S.cows) {
+ const cd = dist2(c.x, c.y, w.x, w.y);
+ if (cd < 90 * 90) { const dd = Math.sqrt(cd) || 1;
+ c.vx += (c.x - w.x)/dd * 260 * dt * 3; c.vy += (c.y - w.y)/dd * 260 * dt * 3; c.eating = 0; }
+ }
+ if (w.latch > 1.6) {
+ const idx = S.cows.indexOf(best);
+ if (idx >= 0) { S.cows.splice(idx, 1); S.cowsLost++; toast('WOLF TOOK ONE!'); }
+ w.state = 'flee'; w.fleeT = 2;
+ }
+ } else w.latch = Math.max(0, w.latch - dt);
+ }
+ }
+ w.x += w.vx * dt; w.y += w.vy * dt;
+ collideFeatures(w, false, dt);
+ }
+
+ for (let i = S.cows.length - 1; i >= 0; i--) {
+ const c = S.cows[i];
+ c.bob += dt * 4;
+ c.panic = Math.max(0, c.panic - dt * .6);
+
+ let inGrass = false;
+ for (const f of S.features) if (f.type === 'grass' && dist2(c.x, c.y, f.cx, f.cy) < f.rad * f.rad) inGrass = true;
+
+ let ax = 0, ay = 0;
+ let nx = 0, ny = 0, n = 0;
+ for (const o of S.cows) {
+ if (o === c) continue;
+ const d2 = dist2(c.x, c.y, o.x, o.y);
+ if (d2 < 110 * 110) { nx += o.x; ny += o.y; n++; }
+ if (d2 < 30 * 30 && d2 > 0.01) { const d = Math.sqrt(d2);
+ ax += (c.x - o.x)/d * 140; ay += (c.y - o.y)/d * 140; }
+ }
+ if (n) { ax += (nx/n - c.x) * 0.55; ay += (ny/n - c.y) * 0.55; }
+
+ ay -= inGrass ? 0 : 18;
+
+ const pd2 = dist2(c.x, c.y, P.x, P.y);
+ if (pd2 < 95 * 95) {
+ const d = Math.sqrt(pd2) || 1;
+ const force = (1 - d / 95) * 620;
+ ax += (c.x - P.x)/d * force; ay += (c.y - P.y)/d * force;
+ c.eating = 0; inGrass = false;
+ }
+ for (const w of S.wolves) {
+ const wd2 = dist2(c.x, c.y, w.x, w.y);
+ if (wd2 < 130 * 130 && w.state !== 'flee') { const d = Math.sqrt(wd2) || 1;
+ ax += (c.x - w.x)/d * 300; ay += (c.y - w.y)/d * 300; }
+ }
+
+ if (inGrass) { c.eating = 1; c.vx *= 0.9; c.vy *= 0.9; ax *= 0.15; ay *= 0.15; }
+ else c.eating = 0;
+
+ c.vx += ax * dt; c.vy += ay * dt;
+ const damp = Math.pow(0.12, dt);
+ c.vx *= damp; c.vy *= damp;
+ const vmax = c.panic > 0 ? 230 : 150;
+ const v = Math.hypot(c.vx, c.vy);
+ if (v > vmax) { c.vx = c.vx/v*vmax; c.vy = c.vy/v*vmax; }
+ c.x += c.vx * dt; c.y += c.vy * dt;
+ collideFeatures(c, false, dt);
+ c.x = clamp(c.x, c.r, W - c.r);
+
+ if (c.y - c.r > screenBot) {
+ S.cows.splice(i, 1); S.cowsLost++;
+ S.parts.push({ x: c.x, y: screenBot - 6, vx: 0, vy: -30, life: .8, col: '#e8c98f', txt: '−1' });
+ continue;
+ }
+ c.y = Math.max(c.y, screenTop + c.r);
+ }
+
+ if (Math.hypot(P.vx, P.vy) > 120 && Math.random() < .6)
+ S.parts.push({ x: P.x + rand(-6,6), y: P.y + 12, vx: rand(-15,15), vy: rand(5,25), life: .6, col: 'rgba(200,170,130,.7)' });
+ for (let i = S.parts.length - 1; i >= 0; i--) {
+ const p = S.parts[i]; p.x += p.vx*dt; p.y += p.vy*dt; p.life -= dt;
+ if (p.life <= 0) S.parts.splice(i, 1);
+ }
+ if (lassoAnim) { lassoAnim.t += dt * 3; if (lassoAnim.t > 1) lassoAnim = null; }
+
+ S.score += S.cows.length * dt;
+ hudHerd.textContent = '🐄 ' + S.cows.length;
+ hudScore.textContent = Math.floor(S.score);
+ hudFx.textContent = (S.boostT > 0 ? '⚡' + S.boostT.toFixed(0) + 's ' : '') + (S.lassoCharges ? '🪢×' + S.lassoCharges : '');
+
+ if (!S.cows.length) endGame();
+}
+
+// ============================== RENDER ==============================
+function draw() {
+ // prairie ground
+ ctx.fillStyle = '#caa96a';
+ ctx.fillRect(0, 0, W, H);
+ // subtle ground stripes tied to world y for scroll feel
+ ctx.fillStyle = 'rgba(160,125,70,.25)';
+ const off = ((-S.camY) % 80 + 80) % 80;
+ for (let y = -80 + off; y < H; y += 80) ctx.fillRect(0, y, W, 30);
+ ctx.fillStyle = 'rgba(120,90,55,.35)';
+ const seedBase = Math.floor(S.camY / 200);
+ for (let k = 0; k < 40; k++) {
+ const s = Math.sin((seedBase + k) * 999.7) * 43758.5;
+ const fx = (s - Math.floor(s)) * W;
+ const fy = ((s * 7 - Math.floor(s * 7)) * H * 3 - ((-S.camY) % (H*3)) + H*3) % (H*3) - H;
+ ctx.fillRect(fx, fy, 4, 3);
+ }
+
+ const sy = y => y - S.camY;
+
+ for (const f of S.features) {
+ if (f.type === 'grass') {
+ const cy = sy(f.cy);
+ if (cy < -150 || cy > H + 150) continue;
+ ctx.fillStyle = '#8a9a5b';
+ ctx.beginPath(); ctx.ellipse(f.cx, cy, f.rad, f.rad * .8, 0, 0, 7); ctx.fill();
+ ctx.strokeStyle = '#6d7d45'; ctx.lineWidth = 2;
+ for (let g = 0; g < 14; g++) {
+ const gx = f.cx + Math.cos(g * 2.1) * f.rad * .7 * ((g%3+1)/3);
+ const gy = cy + Math.sin(g * 1.7) * f.rad * .55 * ((g%2+1)/2);
+ ctx.beginPath(); ctx.moveTo(gx, gy + 5); ctx.lineTo(gx - 3, gy - 6);
+ ctx.moveTo(gx, gy + 5); ctx.lineTo(gx + 3, gy - 7); ctx.stroke();
+ }
+ continue;
+ }
+ const top = sy(f.yTop);
+ if (top > H + 200 || top + f.h < -200) continue;
+ if (f.type === 'river') {
+ ctx.fillStyle = '#4a7a96';
+ ctx.fillRect(0, top, W, f.h);
+ ctx.fillStyle = 'rgba(255,255,255,.25)';
+ const woff = (S.t * 40) % 60;
+ for (let x = -60 + woff; x < W; x += 60) ctx.fillRect(x, top + f.h*.3, 26, 3);
+ for (let x = -30 + woff; x < W; x += 60) ctx.fillRect(x, top + f.h*.65, 20, 3);
+ ctx.fillStyle = '#7a5236';
+ ctx.fillRect(f.gapX - f.gapW/2, top - 4, f.gapW, f.h + 8);
+ ctx.fillStyle = '#5a3c26';
+ for (let bx = f.gapX - f.gapW/2 + 4; bx < f.gapX + f.gapW/2 - 4; bx += 12)
+ ctx.fillRect(bx, top - 4, 3, f.h + 8);
+ } else if (f.type === 'fence') {
+ ctx.fillStyle = '#6b4a30';
+ const gL = f.gapX - f.gapW/2, gR = f.gapX + f.gapW/2;
+ ctx.fillRect(0, top + 4, gL, 5);
+ ctx.fillRect(gR, top + 4, W - gR, 5);
+ for (let px = 8; px < W; px += 42) {
+ if (px > gL - 6 && px < gR + 6) continue;
+ ctx.fillRect(px, top - 6, 6, 22);
+ }
+ ctx.fillStyle = '#8a5f3c';
+ ctx.fillRect(gL - 6, top - 10, 7, 26); ctx.fillRect(gR - 1, top - 10, 7, 26);
+ } else if (f.type === 'canyon') {
+ ctx.fillStyle = '#8a5a3a';
+ ctx.fillRect(0, top, f.wallW, f.h);
+ ctx.fillRect(W - f.wallW, top, f.wallW, f.h);
+ ctx.fillStyle = '#6d4229';
+ for (let yy = top + 10; yy < top + f.h - 10; yy += 34) {
+ ctx.fillRect(4, yy, f.wallW - 14, 8);
+ ctx.fillRect(W - f.wallW + 10, yy + 16, f.wallW - 14, 8);
+ }
+ ctx.fillStyle = '#5a3520';
+ ctx.fillRect(f.wallW - 5, top, 5, f.h);
+ ctx.fillRect(W - f.wallW, top, 5, f.h);
+ }
+ }
+
+ for (const p of S.pickups) {
+ const py = sy(p.y) + Math.sin(S.t * 3 + p.bob) * 4;
+ if (py < -30 || py > H + 30) continue;
+ ctx.font = '22px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+ ctx.fillText(p.kind === 'sugar' ? '🧊' : '🪢', p.x, py);
+ }
+
+ for (const p of S.parts) {
+ ctx.globalAlpha = Math.max(0, p.life);
+ if (p.txt) {
+ ctx.fillStyle = p.col; ctx.font = 'bold 18px Courier New';
+ ctx.textAlign='center'; ctx.fillText(p.txt, p.x, sy(p.y));
+ } else {
+ ctx.fillStyle = p.col; ctx.fillRect(p.x, sy(p.y), 4, 4);
+ }
+ ctx.globalAlpha = 1;
+ }
+
+ // ---- cows ----
+ for (const c of S.cows) {
+ const cy = sy(c.y), bo = Math.sin(c.bob) * 1.5;
+ // shadow
+ ctx.fillStyle = 'rgba(60,40,20,.25)';
+ ctx.beginPath(); ctx.ellipse(c.x, cy + 10, 12, 4, 0, 0, 7); ctx.fill();
+ // body
+ ctx.fillStyle = c.tint;
+ ctx.fillRect(c.x - 11, cy - 7 + bo, 22, 14);
+ // patches
+ ctx.fillStyle = c.tint === '#c9b8a0' ? '#4a3628' : '#c9b8a0';
+ ctx.fillRect(c.x - 6, cy - 5 + bo, 6, 6);
+ ctx.fillRect(c.x + 3, cy + 1 + bo, 5, 5);
+ // head
+ ctx.fillStyle = '#4a3628';
+ const hd = c.vx >= 0 ? 1 : -1;
+ ctx.fillRect(c.x + hd * 9, cy - 9 + bo, 8, 8);
+ // horns
+ ctx.fillStyle = '#e8dcc0';
+ ctx.fillRect(c.x + hd * 9 - 2, cy - 11 + bo, 3, 3);
+ ctx.fillRect(c.x + hd * 15, cy - 11 + bo, 3, 3);
+ // eating indicator
+ if (c.eating) { ctx.fillStyle = '#6d7d45'; ctx.font = '10px monospace'; ctx.textAlign='center';
+ ctx.fillText('nom', c.x, cy - 16); }
+ if (c.panic > 0) { ctx.fillStyle = '#c43a2a'; ctx.font = 'bold 12px monospace'; ctx.textAlign='center';
+ ctx.fillText('!', c.x, cy - 16); }
+ }
+
+ // ---- wolves ----
+ for (const w of S.wolves) {
+ const wy = sy(w.y);
+ ctx.fillStyle = 'rgba(40,30,25,.3)';
+ ctx.beginPath(); ctx.ellipse(w.x, wy + 9, 11, 3.5, 0, 0, 7); ctx.fill();
+ ctx.fillStyle = w.state === 'flee' ? '#7d7d85' : '#55555f';
+ ctx.fillRect(w.x - 10, wy - 5, 20, 11);
+ const whd = w.vx >= 0 ? 1 : -1;
+ ctx.fillRect(w.x + whd * 8, wy - 8, 8, 7); // head
+ ctx.fillRect(w.x + whd * 10, wy - 11, 3, 4); // ear
+ ctx.fillRect(w.x - whd * 13, wy - 7, 5, 4); // tail
+ ctx.fillStyle = '#c43a2a';
+ ctx.fillRect(w.x + whd * 12, wy - 6, 2, 2); // eye
+ }
+
+ // ---- lasso animation ----
+ if (lassoAnim && lassoAnim.cow) {
+ const Pl = S.player, cl = lassoAnim.cow;
+ ctx.strokeStyle = '#e8c98f'; ctx.lineWidth = 3;
+ ctx.beginPath();
+ ctx.moveTo(Pl.x, sy(Pl.y));
+ ctx.quadraticCurveTo((Pl.x + cl.x)/2, sy(Math.min(Pl.y, cl.y)) - 60 * (1 - lassoAnim.t), cl.x, sy(cl.y));
+ ctx.stroke();
+ ctx.beginPath(); ctx.arc(cl.x, sy(cl.y), 18 * (1 - lassoAnim.t) + 6, 0, 7); ctx.stroke();
+ }
+
+ // ---- player (cowboy on horse) ----
+ const P = S.player, py = sy(P.y), g = Math.sin(P.gallop) * 2;
+ ctx.fillStyle = 'rgba(60,40,20,.3)';
+ ctx.beginPath(); ctx.ellipse(P.x, py + 13, 14, 4, 0, 0, 7); ctx.fill();
+ const f = P.face;
+ // horse body
+ ctx.fillStyle = '#6d4229';
+ ctx.fillRect(P.x - 13, py - 4 + g, 26, 12);
+ // horse head + legs
+ ctx.fillRect(P.x + f * 11, py - 10 + g, 8, 10);
+ ctx.fillRect(P.x - 11, py + 7 + g, 4, 7); ctx.fillRect(P.x + 7, py + 7 + g, 4, 7);
+ // mane/tail
+ ctx.fillStyle = '#3d2317';
+ ctx.fillRect(P.x + f * 10, py - 12 + g, 4, 6);
+ ctx.fillRect(P.x - f * 15, py - 4 + g, 4, 8);
+ // rider
+ ctx.fillStyle = '#3a5a8c';
+ ctx.fillRect(P.x - 4, py - 15 + g, 9, 12);
+ ctx.fillStyle = '#d9a066';
+ ctx.fillRect(P.x - 3, py - 21 + g, 7, 6);
+ // hat
+ ctx.fillStyle = '#8a5f3c';
+ ctx.fillRect(P.x - 7, py - 23 + g, 15, 3);
+ ctx.fillRect(P.x - 3, py - 27 + g, 7, 5);
+ if (S.boostT > 0) {
+ ctx.strokeStyle = 'rgba(255,233,176,.8)'; ctx.lineWidth = 2;
+ ctx.beginPath(); ctx.arc(P.x, py - 4, 24 + Math.sin(S.t*10)*3, 0, 7); ctx.stroke();
+ }
+
+ // danger line at the bottom
+ const grad = ctx.createLinearGradient(0, H - 60, 0, H);
+ grad.addColorStop(0, 'rgba(160,50,30,0)'); grad.addColorStop(1, 'rgba(160,50,30,.45)');
+ ctx.fillStyle = grad; ctx.fillRect(0, H - 60, W, 60);
+}
+
+// ============================== GAME LOOP ==============================
+let last = 0;
+function loop(ts) {
+ if (!S.running) return;
+ const dt = Math.min((ts - last) / 1000, 0.05); last = ts;
+ update(dt);
+ draw();
+ requestAnimationFrame(loop);
+}
+
+function startGame() {
+ S.running = true; S.t = 0; S.score = 0; S.camY = -H; S.scrollSpeed = 26;
+ S.cows = []; S.wolves = []; S.features = []; S.pickups = []; S.parts = [];
+ S.lassoCharges = profile.startingLassos;
+ S.boostT = 0; S.cowsLost = 0; S.wolvesRepelled = 0; S._wolfT = 0;
+ S.nextFeatureY = -H * 1.6;
+ S.player = makePlayer();
+ S.player.y = -H * .35;
+ for (let i = 0; i < profile.startingCows; i++)
+ S.cows.push(makeCow(W/2 + rand(-70, 70), -H * .5 + rand(-50, 50)));
+ updateLassoBtn();
+ document.getElementById('menu').classList.add('hidden');
+ document.getElementById('gameover').classList.add('hidden');
+ last = performance.now();
+ requestAnimationFrame(loop);
+}
+
+function endGame() {
+ S.running = false;
+ const runScore = Math.floor(S.score);
+ const wasUnlocked = profile.unlocked;
+ profile.addScore(runScore);
+ const nowUnlocked = profile.unlocked;
+
+ document.getElementById('goScore').textContent = runScore;
+ document.getElementById('goStats').innerHTML =
+ `Time on the trail: <b>${Math.floor(S.t)}s</b><br>` +
+ `Cattle lost: <b>${S.cowsLost}</b><br>` +
+ `Wolves run off: <b>${S.wolvesRepelled}</b>`;
+
+ const lifeEl = document.getElementById('goLifetime');
+ lifeEl.textContent = `${profile.name ? profile.name.toUpperCase() + ' · ' : ''}LIFETIME ${Math.floor(profile.lifetime)}`;
+
+ const unlockEl = document.getElementById('goUnlock');
+ if (!wasUnlocked && nowUnlocked) {
+   unlockEl.textContent = '🏅 TRAIL LEGEND UNLOCKED — +1 LASSO · BONUS COW!';
+   unlockEl.classList.remove('hidden');
+ } else if (nowUnlocked) {
+   unlockEl.textContent = '🏅 TRAIL LEGEND — +1 LASSO · BONUS COW ACTIVE';
+   unlockEl.classList.remove('hidden');
+ } else {
+   const needed = Math.ceil(UNLOCK_SCORE - profile.lifetime);
+   unlockEl.textContent = `${needed} MORE TO UNLOCK TRAIL LEGEND`;
+   unlockEl.classList.remove('hidden');
+ }
+
+ document.getElementById('gameover').classList.remove('hidden');
+ lassoBtn.style.display = 'none';
+ updateProfileUI();
+}
+
+document.getElementById('startBtn').addEventListener('click', startGame);
+document.getElementById('retryBtn').addEventListener('click', startGame);
+
+initProfile();
+</script>
+</body>
+</html>
